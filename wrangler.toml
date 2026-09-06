@@ -1,0 +1,19 @@
+name = "rosearsham"
+main = "src/worker.js"
+compatibility_date = "2026-08-01"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rose-arsham-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# SESSION_SECRET is set as a Secret in the project's dashboard settings
+# (Settings → Variables and Secrets), not here.
+#
+# No R2 bucket needed — uploaded images are stored directly in D1
+# (the "media" table) so the whole project stays on Cloudflare's
+# genuinely card-free free tier.

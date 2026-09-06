@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>پنل مدیریت | رز آرشام</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body class="admin-body">
+
+<!-- ---------------- LOGIN ---------------- -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo">رز آرشام</div>
+    <div class="sub">ورود به پنل مدیریت سایت</div>
+    <form id="loginForm">
+      <div class="form-field">
+        <label for="username">نام کاربری</label>
+        <input id="username" name="username" type="text" required autocomplete="username">
+      </div>
+      <div class="form-field" style="margin-bottom:8px;">
+        <label for="password">رمز عبور</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary">ورود</button>
+      <div class="login-error" id="loginError">نام کاربری یا رمز عبور اشتباه است.</div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------------- DASHBOARD SHELL ---------------- -->
+<div class="admin-shell" id="adminShell" style="display:none;">
+  <aside class="admin-sidebar">
+    <div class="logo">رز آرشام</div>
+    <nav class="admin-nav" id="adminNav">
+      <button data-panel="dashboard" class="active">داشبورد</button>
+      <button data-panel="products">محصولات</button>
+      <button data-panel="gallery">گالری تصاویر</button>
+      <button data-panel="site-media">تصاویر سایت</button>
+      <button data-panel="settings">متن‌های سایت</button>
+      <button data-panel="messages">پیام‌ها</button>
+    </nav>
+    <button class="admin-logout" id="logoutBtn">خروج از حساب</button>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- PRODUCTS -->
+    <section class="admin-panel active" data-panel="dashboard">
+      <div class="admin-head"><div><h1>داشبورد</h1><p>نمای کلی سایت و مدیریت سریع.</p></div></div>
+      <div class="dashboard-grid">
+        <div class="stat-card"><span>محصولات</span><strong id="statProducts">—</strong><button class="btn-small" data-go="products">مدیریت</button></div>
+        <div class="stat-card"><span>تصاویر گالری</span><strong id="statGallery">—</strong><button class="btn-small" data-go="gallery">مدیریت</button></div>
+        <div class="stat-card"><span>پیام‌ها</span><strong id="statMessages">—</strong><button class="btn-small" data-go="messages">مشاهده</button></div>
+        <div class="stat-card"><span>متن‌های سایت</span><strong>ویرایش</strong><button class="btn-small" data-go="settings">مدیریت</button></div>
+      </div>
+      <div class="admin-card quick-actions"><h3>دسترسی سریع</h3><div><button class="btn-primary" id="quickProduct">+ افزودن محصول</button><button class="btn-small" id="quickGallery">+ افزودن تصویر</button></div></div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section class="admin-panel" data-panel="products">
+      <div class="admin-head">
+        <div>
+          <h1>محصولات</h1>
+          <p>افزودن، ویرایش یا حذف محصولات سایت — بدون قیمت‌گذاری.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-btn-row">
+          <input id="productSearch" class="admin-search" placeholder="جستجوی محصول..."><span style="font-size:13px; color:var(--muted);">لیست محصولات</span>
+          <button class="btn-small" id="newProductBtn">+ محصول جدید</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>تصویر</th><th>نام</th><th>دسته‌بندی</th><th>ترتیب</th><th>وضعیت</th><th></th></tr></thead>
+          <tbody id="productsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="admin-panel" data-panel="gallery">
+      <div class="admin-head">
+        <div>
+          <h1>گالری تصاویر</h1>
+          <p>افزودن یا حذف تصاویر گالری عمومی سایت.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-btn-row">
+          <span style="font-size:13px; color:var(--muted);">تصاویر گالری</span>
+          <button class="btn-small" id="newGalleryBtn">+ افزودن تصویر</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>تصویر</th><th>دسته‌بندی</th><th>توضیح</th><th></th></tr></thead>
+          <tbody id="galleryTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SITE MEDIA -->
+    <section class="admin-panel" data-panel="site-media">
+      <div class="admin-head"><div><h1>تصاویر سایت</h1><p>عکس‌های ثابت صفحه اصلی و صفحات داخلی را آپلود، جایگزین، حذف و اندازه‌گذاری کنید.</p></div></div>
+      <div class="admin-card">
+        <div class="site-media-help">هر جایگاه یک تصویر مشخص دارد. اگر تصویری برای یک جایگاه ثبت نشود، طراحی پیش‌فرض سایت حفظ می‌شود.</div>
+        <div id="siteMediaGrid" class="site-media-grid"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS / TEXTS -->
+    <section class="admin-panel" data-panel="settings">
+      <div class="admin-head">
+        <div>
+          <h1>متن‌های سایت</h1>
+          <p>ویرایش متن‌های صفحه اصلی و اطلاعات تماس.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div id="settingsFields" class="settings-fields"></div>
+        <button type="button" class="btn-primary" id="saveSettingsBtn" style="border:none; cursor:pointer;">ذخیره همه متن‌ها</button>
+      </div>
+    </section>
+
+    <!-- MESSAGES -->
+    <section class="admin-panel" data-panel="messages">
+      <div class="admin-head">
+        <div>
+          <h1>پیام‌های تماس</h1>
+          <p>پیام‌های ارسالی از فرم تماس با ما.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <table class="admin-table">
+          <thead><tr><th>نام</th><th>ایمیل / تلفن</th><th>پیام</th><th>تاریخ</th><th></th></tr></thead>
+          <tbody id="messagesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ---------------- PRODUCT MODAL ---------------- -->
+<div class="modal-backdrop" id="productModal">
+  <div class="modal">
+    <h2 id="productModalTitle">محصول جدید</h2>
+    <form id="productForm">
+      <input type="hidden" id="productId">
+      <div class="form-field">
+        <label for="productName">نام محصول</label>
+        <input id="productName" required type="text">
+      </div>
+      <div class="form-field">
+        <label for="productCategory">دسته‌بندی</label>
+        <select id="productCategory" style="width:100%; border:1.3px solid var(--line); border-radius:10px; padding:13px 16px; font-family:var(--font-body); background:var(--paper);">
+          <option value="facial">دستمال کاغذی صورت</option>
+          <option value="toilet">دستمال توالت</option>
+          <option value="towel">حوله کاغذی</option>
+          <option value="napkin">دستمال سفره</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="productDesc">توضیح کوتاه</label>
+        <textarea id="productDesc" maxlength="5000"></textarea>
+      <div class="form-field"><label for="productSort">ترتیب نمایش</label><input id="productSort" type="number" min="0" step="1" value="0"></div>
+      </div>
+      <div class="form-field">
+        <label>تصویر محصول</label>
+        <div class="upload-drop" id="productUploadDrop">برای افزودن تصویر کلیک کنید (امکان انتخاب چند تصویر)</div>
+        <input type="file" id="productImageInput" accept="image/*" multiple style="display:none;">
+        <div class="upload-preview multi" id="productImagePreview"></div>
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; margin-bottom:20px;">
+        <input type="checkbox" id="productActive" checked> نمایش در سایت
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-small secondary" id="productCancelBtn">انصراف</button>
+        <button type="submit" class="btn-small">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------------- GALLERY MODAL ---------------- -->
+<div class="modal-backdrop" id="galleryModal">
+  <div class="modal">
+    <h2>افزودن تصویر گالری</h2>
+    <form id="galleryForm">
+      <div class="form-field">
+        <label>تصویر</label>
+        <div class="upload-drop" id="galleryUploadDrop">برای آپلود تصویر کلیک کنید</div>
+        <input type="file" id="galleryImageInput" accept="image/*" style="display:none;">
+        <div class="upload-preview" id="galleryImagePreview"></div>
+      </div>
+      <div class="form-field">
+        <label for="galleryCategory">دسته‌بندی</label>
+        <select id="galleryCategory" style="width:100%; border:1.3px solid var(--line); border-radius:10px; padding:13px 16px; font-family:var(--font-body); background:var(--paper);">
+          <option value="کارخانه">کارخانه</option>
+          <option value="محصول">محصول</option>
+          <option value="بسته‌بندی">بسته‌بندی</option>
+          <option value="رویداد">رویداد</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="galleryCaption">توضیح (اختیاری)</label>
+        <input id="galleryCaption" type="text">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-small secondary" id="galleryCancelBtn">انصراف</button>
+        <button type="submit" class="btn-small">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------------- SITE MEDIA MODAL ---------------- -->
+<div class="modal-backdrop" id="siteMediaModal">
+  <div class="modal">
+    <h2 id="siteMediaModalTitle">مدیریت تصویر</h2>
+    <form id="siteMediaForm">
+      <input type="hidden" id="siteMediaId"><input type="hidden" id="siteMediaSlot">
+      <div class="form-field"><label>تصویر</label><div class="upload-drop" id="siteMediaUploadDrop">برای آپلود یا جایگزینی تصویر کلیک کنید</div><input type="file" id="siteMediaInput" accept="image/*" style="display:none;"><div class="upload-preview" id="siteMediaPreview"></div></div>
+      <div class="form-field"><label for="siteMediaTitle">عنوان</label><input id="siteMediaTitle" type="text" maxlength="160"></div>
+      <div class="form-field"><label for="siteMediaWidth">عرض نمایش</label><input id="siteMediaWidth" type="text" placeholder="auto یا مثلا 520px / 80%"></div>
+      <div class="form-field"><label for="siteMediaHeight">ارتفاع نمایش</label><input id="siteMediaHeight" type="text" placeholder="auto یا مثلا 360px / 60vh"></div>
+      <div class="form-field"><label for="siteMediaFit">نحوه قرارگیری</label><select id="siteMediaFit"><option>cover</option><option>contain</option><option>fill</option><option>none</option><option>scale-down</option></select></div>
+      <div class="form-field"><label for="siteMediaPosition">موقعیت تصویر</label><input id="siteMediaPosition" type="text" value="center" placeholder="center / top / 50% 30%"></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;margin-bottom:20px;"><input type="checkbox" id="siteMediaActive" checked> نمایش در سایت</label>
+      <div class="modal-actions"><button type="button" class="btn-small secondary" id="siteMediaCancelBtn">انصراف</button><button type="submit" class="btn-small">ذخیره تصویر</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../site-texts.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

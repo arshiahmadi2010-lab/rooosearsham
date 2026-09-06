@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title data-setting="site.meta_title.contact">تماس با ما | رز آرشام</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-nav" id="siteNav">
+<div class="wrap nav-inner">
+<div class="logo">
+<svg class="logo-mark" fill="none" viewbox="0 0 26 26">
+<path d="M13 2C13 2 6 8 6 14.5C6 19.7 9.3 24 13 24C16.7 24 20 19.7 20 14.5C20 8 13 2 13 2Z" stroke="#8E4F5B" stroke-width="1.4"></path>
+<path d="M13 6.5C13 6.5 9 11 9 15" stroke="#7E9A6D" stroke-linecap="round" stroke-width="1.2"></path>
+</svg><span data-setting="site.brand">رز آرشام</span></div>
+<nav class="nav-links">
+<a data-setting="site.nav.home" href="index.html">خانه</a>
+<a data-setting="site.nav.products" href="products.html">محصولات</a>
+<a data-setting="site.nav.gallery" href="gallery.html">گالری</a>
+<a data-setting="site.nav.about" href="about.html">درباره ما</a>
+<a data-setting="site.nav.contact" href="contact.html">تماس با ما</a>
+</nav>
+<a class="nav-cta" data-setting="site.nav.cta" href="contact.html">تماس با ما</a>
+</div>
+</header>
+<section class="page-hero" data-media-bg="contact.hero">
+<div class="wrap">
+<div class="breadcrumb"><a href="index.html">خانه</a><span>/</span><span>تماس با ما</span></div>
+<h1><span data-setting="contact.hero_title">خوشحال می‌شویم</span><strong data-setting="contact.hero_title_emphasis">از شما بشنویم.</strong></h1>
+<p data-setting="contact.hero_description">برای سوالات، همکاری یا هر بازخوردی، از راه‌های زیر با ما در ارتباط باشید.</p>
+</div>
+</section>
+<section class="section-pad" style="padding-top:20px;">
+<div class="wrap contact-grid reveal">
+<div>
+<div class="contact-info-card">
+<div class="contact-info-item">
+<svg fill="none" height="20" viewbox="0 0 20 20" width="20"><path d="M3 5.5L10 11L17 5.5" stroke="#3E5636" stroke-width="1.4"></path><rect height="12" rx="2" stroke="#3E5636" stroke-width="1.4" width="14" x="3" y="4"></rect></svg>
+<div><h4 data-setting="contact.info_label.0">ایمیل</h4><a href="mailto:info@rosearsham.example" id="contactEmail">info@rosearsham.example</a></div>
+</div>
+<div class="contact-info-item">
+<svg fill="none" height="20" viewbox="0 0 20 20" width="20"><path d="M4 3H7L9 8L6.5 9.5C7.5 11.7 9.3 13.5 11.5 14.5L13 12L17 14V17C17 17.6 16.6 18 16 18C9.4 18 4 12.6 4 6C4 5.4 4 4 4 3Z" stroke="#3E5636" stroke-width="1.3"></path></svg>
+<div><h4 data-setting="contact.info_label.1">تلفن</h4><a href="tel:+98210000000" id="contactPhone">۰۲۱-۰۰۰۰۰۰۰</a></div>
+</div>
+<div class="contact-info-item">
+<svg fill="none" height="20" viewbox="0 0 20 20" width="20"><path d="M10 2C6.7 2 4 4.7 4 8C4 12.5 10 18 10 18C10 18 16 12.5 16 8C16 4.7 13.3 2 10 2Z" stroke="#3E5636" stroke-width="1.4"></path><circle cx="10" cy="8" r="2.3" stroke="#3E5636" stroke-width="1.3"></circle></svg>
+<div><h4 data-setting="contact.info_label.2">آدرس دفتر مرکزی</h4><p id="contactAddress">پس از نهایی‌شدن، از پنل ادمین ثبت می‌شود</p></div>
+</div>
+</div>
+<div class="map-placeholder"></div>
+</div>
+<div>
+<form id="contactForm">
+<div class="form-row">
+<div class="form-field">
+<label data-setting="contact.form.name_label" for="fname">نام و نام خانوادگی</label>
+<input id="fname" name="name" required="" type="text"/>
+</div>
+<div class="form-field">
+<label data-setting="contact.form.phone_label" for="fphone">شماره تماس</label>
+<input id="fphone" name="phone" type="tel"/>
+</div>
+</div>
+<div class="form-field">
+<label data-setting="contact.form.email_label" for="femail">ایمیل</label>
+<input id="femail" name="email" required="" type="email"/>
+</div>
+<div class="form-field">
+<label data-setting="contact.form.message_label" for="fmsg">پیام شما</label>
+<textarea id="fmsg" name="message" required=""></textarea>
+</div>
+<p class="form-note" data-setting="contact.form.note">این فرم به‌زودی به سرویس ارسال پیام کلودفلر (Workers) متصل می‌شود.</p>
+<button class="btn-primary" data-setting="contact.form.submit" style="border:none; cursor:pointer;" type="submit">ارسال پیام</button>
+<div class="form-status" id="formStatus"></div>
+</form>
+</div>
+</div>
+</section>
+<footer id="contact-footer">
+<div class="wrap footer-top">
+<div class="footer-brand">
+<div class="logo"><span data-setting="site.brand">رز آرشام</span></div>
+<p data-setting="site.footer.description">تولیدکننده محصولات سلولزی با کیفیتی که از دل الیاف طبیعی بیرون می‌آید.</p>
+</div>
+<div class="footer-col">
+<h4 data-setting="site.footer.quick_title">دسترسی سریع</h4>
+<ul>
+<li><a data-setting="site.footer.products" href="products.html">محصولات</a></li>
+<li><a data-setting="site.footer.gallery" href="gallery.html">گالری</a></li>
+<li><a data-setting="site.footer.about" href="about.html">درباره ما</a></li>
+</ul>
+</div>
+<div class="footer-col">
+<h4 data-setting="site.footer.contact_title">تماس</h4>
+<ul>
+<li><a href="tel:+98210000000" id="footerPhone">۰۲۱-۰۰۰۰۰۰۰</a></li>
+<li><a href="mailto:info@rosearsham.example" id="footerEmail">info@rosearsham.example</a></li>
+</ul>
+</div>
+<div class="footer-col">
+<h4 data-setting="site.footer.social_title">شبکه‌های اجتماعی</h4>
+<ul>
+<li><a data-setting="site.footer.instagram" href="#">اینستاگرام</a></li>
+<li><a data-setting="site.footer.telegram" href="#">تلگرام</a></li>
+</ul>
+</div>
+</div>
+<div class="wrap footer-bottom">
+<span data-setting="site.footer.copyright">© ۱۴۰۴ رز آرشام. تمامی حقوق محفوظ است.</span>
+<span data-setting="site.footer.credit">طراحی و توسعه با ❤</span>
+</div>
+</footer>
+<script defer="" src="script.js"></script>
+</body>
+</html>
