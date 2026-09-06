@@ -8,8 +8,8 @@ binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "rose-arsham-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_name = "rose-arsham-db1"
+database_id = "15817063-2461-46b0-aa53-41f7de6a64ec"
 
 # SESSION_SECRET is set as a Secret in the project's dashboard settings
 # (Settings → Variables and Secrets), not here.
