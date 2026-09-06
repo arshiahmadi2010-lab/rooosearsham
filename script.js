@@ -117,6 +117,50 @@ const settingsReady = (async function loadSettings() {
   const s = data.settings;
   siteSettings = s;
 
+  // Apply admin-customized theme colors/font, if any are set.
+  const themeMap = { "theme.bg": "--bg", "theme.rose": "--rose", "theme.rose_deep": "--rose-deep", "theme.sage": "--sage", "theme.sage_deep": "--sage-deep", "theme.sage_pale": "--sage-pale", "theme.ink": "--ink" };
+  const themeVars = Object.entries(themeMap).filter(([k]) => s[k]).map(([k, v]) => `${v}:${s[k]}`);
+  const fontChoices = { "Vazirmatn": "Vazirmatn:wght@200;300;400;600;700", "IBM Plex Sans Arabic": "IBM+Plex+Sans+Arabic:wght@300;400;500;600", "Noto Sans Arabic": "Noto+Sans+Arabic:wght@300;400;500;600;700", "Rubik": "Rubik:wght@300;400;500;600;700", "Almarai": "Almarai:wght@300;400;700;800" };
+  [s["theme.font_display"], s["theme.font_body"]].forEach((f) => {
+    if (f && fontChoices[f] && !document.querySelector(`link[data-font="${f}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet"; link.dataset.font = f;
+      link.href = `https://fonts.googleapis.com/css2?family=${fontChoices[f]}&display=swap`;
+      document.head.appendChild(link);
+    }
+  });
+  if (s["theme.font_display"]) themeVars.push(`--font-display:'${s["theme.font_display"]}', sans-serif`);
+  if (s["theme.font_body"]) themeVars.push(`--font-body:'${s["theme.font_body"]}', sans-serif`);
+  if (themeVars.length) {
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `:root{${themeVars.join(";")}}`;
+    document.head.appendChild(styleEl);
+  }
+  if (s["theme.custom_css"]) {
+    const customEl = document.createElement("style");
+    customEl.id = "custom-site-css";
+    customEl.textContent = s["theme.custom_css"];
+    document.head.appendChild(customEl);
+  }
+
+  // SEO: meta description + favicon
+  if (s["seo.meta_description"]) {
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) { metaDesc = document.createElement("meta"); metaDesc.name = "description"; document.head.appendChild(metaDesc); }
+    metaDesc.setAttribute("content", s["seo.meta_description"]);
+  }
+  if (s["seo.favicon_url"]) {
+    let icon = document.querySelector('link[rel="icon"]');
+    if (!icon) { icon = document.createElement("link"); icon.rel = "icon"; document.head.appendChild(icon); }
+    icon.href = s["seo.favicon_url"];
+  }
+
+  // Section visibility toggles (homepage sections can be hidden from admin)
+  const visibilityMap = { "visibility.about": "about", "visibility.products": "products", "visibility.process": "process", "visibility.gallery_preview": "gallery" };
+  Object.entries(visibilityMap).forEach(([key, id]) => {
+    if (s[key] === "0") { const el = document.getElementById(id); if (el) el.style.display = "none"; }
+  });
+
   // Every static editable text on the site is marked with data-setting.
   document.querySelectorAll("[data-setting]").forEach((el) => {
     const key = el.dataset.setting;

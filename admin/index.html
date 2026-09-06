@@ -38,11 +38,18 @@
     <div class="logo">رز آرشام</div>
     <nav class="admin-nav" id="adminNav">
       <button data-panel="dashboard" class="active">داشبورد</button>
+      <div class="admin-nav-label">محتوا</div>
       <button data-panel="products">محصولات</button>
       <button data-panel="gallery">گالری تصاویر</button>
       <button data-panel="site-media">تصاویر سایت</button>
       <button data-panel="settings">متن‌های سایت</button>
+      <div class="admin-nav-label">ظاهر</div>
+      <button data-panel="appearance">ظاهر و تم سایت</button>
+      <div class="admin-nav-label">پیشرفته</div>
+      <button data-panel="advanced">تنظیمات پیشرفته</button>
+      <div class="admin-nav-label">مدیریت</div>
       <button data-panel="messages">پیام‌ها</button>
+      <button data-panel="account">حساب کاربری</button>
     </nav>
     <button class="admin-logout" id="logoutBtn">خروج از حساب</button>
   </aside>
@@ -140,6 +147,89 @@
       </div>
     </section>
 
+    <!-- APPEARANCE / THEME -->
+    <section class="admin-panel" data-panel="appearance">
+      <div class="admin-head"><div><h1>ظاهر و تم سایت</h1><p>رنگ‌ها و فونت سایت را بدون کدنویسی تغییر بده. تغییرات بلافاصله روی سایت اعمال می‌شود.</p></div></div>
+      <div class="admin-card">
+        <h3 style="margin-bottom:16px;">رنگ‌ها</h3>
+        <div class="theme-color-grid" id="themeColorGrid"></div>
+      </div>
+      <div class="admin-card">
+        <h3 style="margin-bottom:16px;">فونت‌ها</h3>
+        <div class="settings-fields">
+          <div class="form-field">
+            <label for="themeFontDisplay">فونت تیترها</label>
+            <select id="themeFontDisplay"><option value="Vazirmatn">Vazirmatn (پیش‌فرض)</option><option value="IBM Plex Sans Arabic">IBM Plex Sans Arabic</option><option value="Noto Sans Arabic">Noto Sans Arabic</option><option value="Rubik">Rubik</option><option value="Almarai">Almarai</option></select>
+          </div>
+          <div class="form-field">
+            <label for="themeFontBody">فونت متن</label>
+            <select id="themeFontBody"><option value="IBM Plex Sans Arabic">IBM Plex Sans Arabic (پیش‌فرض)</option><option value="Vazirmatn">Vazirmatn</option><option value="Noto Sans Arabic">Noto Sans Arabic</option><option value="Rubik">Rubik</option><option value="Almarai">Almarai</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="admin-card" style="display:flex; gap:12px; align-items:center;">
+        <button type="button" class="btn-primary" id="saveThemeBtn" style="border:none; cursor:pointer;">ذخیره تغییرات ظاهری</button>
+        <button type="button" class="btn-small secondary" id="resetThemeBtn">بازگشت به رنگ‌های پیش‌فرض</button>
+        <a href="../index.html" target="_blank" class="btn-small secondary" style="text-decoration:none; display:inline-flex; align-items:center;">مشاهده سایت ↗</a>
+      </div>
+    </section>
+
+    <!-- ACCOUNT -->
+    <section class="admin-panel" data-panel="account">
+      <div class="admin-head"><div><h1>حساب کاربری</h1><p>تغییر رمز عبور ورود به پنل مدیریت.</p></div></div>
+      <div class="admin-card" style="max-width:420px;">
+        <form id="passwordForm">
+          <div class="form-field"><label for="currentPassword">رمز فعلی</label><input id="currentPassword" type="password" required autocomplete="current-password"></div>
+          <div class="form-field"><label for="newPassword">رمز جدید</label><input id="newPassword" type="password" required minlength="6" autocomplete="new-password"></div>
+          <div class="form-field"><label for="confirmPassword">تکرار رمز جدید</label><input id="confirmPassword" type="password" required minlength="6" autocomplete="new-password"></div>
+          <button type="submit" class="btn-primary" style="border:none; cursor:pointer; width:100%;">تغییر رمز عبور</button>
+          <div class="login-error" id="passwordError" style="display:none;"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ADVANCED -->
+    <section class="admin-panel" data-panel="advanced">
+      <div class="admin-head"><div><h1>تنظیمات پیشرفته</h1><p>چیدمان صفحه اصلی، سئو، CSS اختصاصی و پشتیبان‌گیری از تنظیمات.</p></div></div>
+
+      <div class="admin-card">
+        <h3 style="margin-bottom:14px;">چیدمان صفحه اصلی</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">هر بخش را می‌توانی بدون حذف محتوا، از صفحه اصلی مخفی کنی.</p>
+        <div class="layout-toggle-list" id="layoutToggleList"></div>
+      </div>
+
+      <div class="admin-card">
+        <h3 style="margin-bottom:14px;">سئو و برندینگ</h3>
+        <div class="settings-fields">
+          <div class="form-field"><label for="seoDescription">توضیح متا (برای گوگل)</label><textarea id="seoDescription" maxlength="300" placeholder="یک یا دو جمله درباره سایت شما، برای نمایش در نتایج گوگل."></textarea></div>
+          <div class="form-field">
+            <label>فاوآیکون (آیکون تب مرورگر)</label>
+            <div class="upload-drop" id="faviconUploadDrop">برای آپلود فاوآیکون کلیک کن (ترجیحاً مربعی)</div>
+            <input type="file" id="faviconInput" accept="image/*" style="display:none;">
+            <div class="upload-preview" id="faviconPreview"></div>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="saveSeoBtn" style="border:none; cursor:pointer;">ذخیره سئو و برندینگ</button>
+      </div>
+
+      <div class="admin-card">
+        <h3 style="margin-bottom:8px;">CSS اختصاصی</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">دستت کاملاً بازه — هر CSS دلخواهی رو اینجا بنویس تا مستقیم روی سایت اعمال بشه. اگه با CSS آشنا نیستی، از این بخش صرف‌نظر کن.</p>
+        <textarea id="customCssEditor" spellcheck="false" style="width:100%; min-height:220px; font-family:monospace; font-size:13px; direction:ltr; text-align:left; border:1.3px solid var(--line); border-radius:10px; padding:14px; background:var(--paper); color:var(--ink);" placeholder=".hero h1{ font-size: 60px; }"></textarea>
+        <button type="button" class="btn-primary" id="saveCustomCssBtn" style="border:none; cursor:pointer; margin-top:14px;">ذخیره CSS اختصاصی</button>
+      </div>
+
+      <div class="admin-card">
+        <h3 style="margin-bottom:8px;">پشتیبان‌گیری از تنظیمات</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">یک نسخه پشتیبان از تمام متن‌ها، رنگ‌ها و تنظیمات سایت بگیر، یا نسخه قبلی را برگردان.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button type="button" class="btn-small" id="exportSettingsBtn">دانلود پشتیبان (JSON)</button>
+          <button type="button" class="btn-small secondary" id="importSettingsBtn">بازیابی از فایل پشتیبان</button>
+          <input type="file" id="importSettingsInput" accept="application/json" style="display:none;">
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -165,8 +255,8 @@
       <div class="form-field">
         <label for="productDesc">توضیح کوتاه</label>
         <textarea id="productDesc" maxlength="5000"></textarea>
-      <div class="form-field"><label for="productSort">ترتیب نمایش</label><input id="productSort" type="number" min="0" step="1" value="0"></div>
       </div>
+      <div class="form-field"><label for="productSort">ترتیب نمایش</label><input id="productSort" type="number" min="0" step="1" value="0"></div>
       <div class="form-field">
         <label>تصویر محصول</label>
         <div class="upload-drop" id="productUploadDrop">برای افزودن تصویر کلیک کنید (امکان انتخاب چند تصویر)</div>

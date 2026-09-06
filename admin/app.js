@@ -50,6 +50,7 @@ function showDashboard() {
   loadSiteMedia();
   loadSettings();
   loadMessages();
+  loadTheme();
 }
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -397,6 +398,199 @@ async function loadMessages() {
         loadMessages();
       }));
   } catch (err) { toast(err.message); }
+}
+
+// ==================== APPEARANCE / THEME ====================
+const THEME_COLORS = [
+  { key: "theme.bg", label: "پس‌زمینه سایت", fallback: "#EAF7FF" },
+  { key: "theme.ink", label: "رنگ متن اصلی", fallback: "#123047" },
+  { key: "theme.rose", label: "رنگ اصلی (روشن)", fallback: "#55B9E8" },
+  { key: "theme.rose_deep", label: "رنگ اصلی (تیره)", fallback: "#1684B8" },
+  { key: "theme.sage", label: "رنگ ثانویه (روشن)", fallback: "#69B7D9" },
+  { key: "theme.sage_deep", label: "رنگ ثانویه (تیره)", fallback: "#0F5F82" },
+  { key: "theme.sage_pale", label: "رنگ زمینه بخش‌ها", fallback: "#D3EEFA" },
+];
+let themeSettingsCache = {};
+
+function renderThemeColors() {
+  const grid = document.getElementById("themeColorGrid");
+  grid.innerHTML = THEME_COLORS.map(c => `
+    <div class="theme-color-item">
+      <input type="color" id="color_${c.key}" value="${(themeSettingsCache[c.key] || c.fallback)}">
+      <span>${c.label}</span>
+    </div>`).join("");
+  grid.querySelectorAll("input[type=color]").forEach(input => {
+    input.addEventListener("input", applyThemePreview);
+  });
+}
+
+function applyThemePreview() {
+  const map = { "theme.bg": "--bg", "theme.ink": "--ink", "theme.rose": "--rose", "theme.rose_deep": "--rose-deep", "theme.sage": "--sage", "theme.sage_deep": "--sage-deep", "theme.sage_pale": "--sage-pale" };
+  const vars = THEME_COLORS.map(c => `${map[c.key]}:${document.getElementById("color_" + c.key).value}`);
+  let styleEl = document.getElementById("themePreviewStyle");
+  if (!styleEl) { styleEl = document.createElement("style"); styleEl.id = "themePreviewStyle"; document.head.appendChild(styleEl); }
+  styleEl.textContent = `:root{${vars.join(";")}}`;
+}
+
+async function loadTheme() {
+  try {
+    const { settings } = await api("/api/admin/settings");
+    themeSettingsCache = settings || {};
+    renderThemeColors();
+    applyThemePreview();
+    document.getElementById("themeFontDisplay").value = themeSettingsCache["theme.font_display"] || "Vazirmatn";
+    document.getElementById("themeFontBody").value = themeSettingsCache["theme.font_body"] || "IBM Plex Sans Arabic";
+    loadAdvanced();
+  } catch (err) { toast(err.message); }
+}
+
+document.getElementById("saveThemeBtn").addEventListener("click", async () => {
+  const payload = {};
+  THEME_COLORS.forEach(c => { payload[c.key] = document.getElementById("color_" + c.key).value; });
+  payload["theme.font_display"] = document.getElementById("themeFontDisplay").value;
+  payload["theme.font_body"] = document.getElementById("themeFontBody").value;
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    themeSettingsCache = { ...themeSettingsCache, ...payload };
+    toast("تغییرات ظاهری ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("resetThemeBtn").addEventListener("click", async () => {
+  if (!confirm("رنگ‌ها به حالت پیش‌فرض بازگردانده شوند؟")) return;
+  const payload = {};
+  THEME_COLORS.forEach(c => { payload[c.key] = c.fallback; });
+  payload["theme.font_display"] = "Vazirmatn";
+  payload["theme.font_body"] = "IBM Plex Sans Arabic";
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    themeSettingsCache = { ...themeSettingsCache, ...payload };
+    renderThemeColors();
+    applyThemePreview();
+    document.getElementById("themeFontDisplay").value = "Vazirmatn";
+    document.getElementById("themeFontBody").value = "IBM Plex Sans Arabic";
+    toast("رنگ‌ها بازنشانی شد.");
+  } catch (err) { toast(err.message); }
+});
+
+// ==================== ACCOUNT / PASSWORD ====================
+document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("passwordError");
+  errEl.style.display = "none";
+  const currentPassword = document.getElementById("currentPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = "رمز جدید و تکرار آن یکسان نیستند.";
+    errEl.style.display = "block";
+    return;
+  }
+  try {
+    await api("/api/admin/change-password", { method: "POST", body: JSON.stringify({ currentPassword, newPassword }) });
+    toast("رمز عبور با موفقیت تغییر کرد.");
+    e.target.reset();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  }
+});
+
+// ==================== ADVANCED: LAYOUT, SEO, CUSTOM CSS, BACKUP ====================
+const LAYOUT_TOGGLES = [
+  { key: "visibility.about", label: "بخش «درباره ما»" },
+  { key: "visibility.products", label: "بخش «محصولات»" },
+  { key: "visibility.process", label: "بخش «فرآیند تولید»" },
+  { key: "visibility.gallery_preview", label: "بخش «نگاهی به گالری»" },
+];
+
+function renderLayoutToggles() {
+  const list = document.getElementById("layoutToggleList");
+  list.innerHTML = LAYOUT_TOGGLES.map(t => `
+    <div class="layout-toggle-row">
+      <span>${t.label}</span>
+      <label class="switch">
+        <input type="checkbox" data-vis-key="${t.key}" ${themeSettingsCache[t.key] !== "0" ? "checked" : ""}>
+        <span class="slider"></span>
+      </label>
+    </div>`).join("");
+  list.querySelectorAll("[data-vis-key]").forEach(input => {
+    input.addEventListener("change", async () => {
+      const payload = { [input.dataset.visKey]: input.checked ? "1" : "0" };
+      try {
+        await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+        themeSettingsCache[input.dataset.visKey] = payload[input.dataset.visKey];
+        toast("چیدمان صفحه اصلی به‌روز شد.");
+      } catch (err) { toast(err.message); }
+    });
+  });
+}
+
+document.getElementById("saveSeoBtn").addEventListener("click", async () => {
+  const payload = { "seo.meta_description": document.getElementById("seoDescription").value };
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    Object.assign(themeSettingsCache, payload);
+    toast("سئو و برندینگ ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("faviconUploadDrop").addEventListener("click", () => document.getElementById("faviconInput").click());
+document.getElementById("faviconInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const url = await uploadFile(file);
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify({ "seo.favicon_url": url }) });
+    themeSettingsCache["seo.favicon_url"] = url;
+    document.getElementById("faviconPreview").innerHTML = `<img src="${url}" alt="">`;
+    toast("فاوآیکون ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("saveCustomCssBtn").addEventListener("click", async () => {
+  const payload = { "theme.custom_css": document.getElementById("customCssEditor").value };
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    themeSettingsCache["theme.custom_css"] = payload["theme.custom_css"];
+    toast("CSS اختصاصی ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("exportSettingsBtn").addEventListener("click", async () => {
+  try {
+    const { settings } = await api("/api/admin/settings");
+    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `rose-arsham-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    toast("فایل پشتیبان دانلود شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("importSettingsBtn").addEventListener("click", () => document.getElementById("importSettingsInput").click());
+document.getElementById("importSettingsInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    if (typeof payload !== "object" || Array.isArray(payload)) throw new Error("فایل پشتیبان معتبر نیست.");
+    if (!confirm("تمام تنظیمات فعلی با فایل پشتیبان جایگزین می‌شود. ادامه می‌دهی؟")) return;
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    toast("بازیابی انجام شد. صفحه رفرش می‌شود...");
+    setTimeout(() => location.reload(), 1200);
+  } catch (err) { toast(err.message); }
+});
+
+function loadAdvanced() {
+  renderLayoutToggles();
+  document.getElementById("seoDescription").value = themeSettingsCache["seo.meta_description"] || "";
+  document.getElementById("customCssEditor").value = themeSettingsCache["theme.custom_css"] || "";
+  if (themeSettingsCache["seo.favicon_url"]) {
+    document.getElementById("faviconPreview").innerHTML = `<img src="${themeSettingsCache["seo.favicon_url"]}" alt="">`;
+  }
 }
 
 document.querySelectorAll("[data-go]").forEach(btn => btn.addEventListener("click", () => document.querySelector(`button[data-panel="${btn.dataset.go}"]`)?.click()));

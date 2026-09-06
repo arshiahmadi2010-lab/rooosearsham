@@ -1,6 +1,7 @@
 import {
   hashPassword,
   verifyPassword,
+  randomSaltHex,
   createSessionToken,
   verifySessionToken,
   getCookie,
@@ -279,6 +280,21 @@ async function adminUpdateSettings(request, env) {
   return jsonResponse({ ok: true });
 }
 
+async function adminChangePassword(request, env, session) {
+  const body = await readJson(request);
+  const { currentPassword, newPassword } = body || {};
+  if (!currentPassword || !newPassword) return jsonResponse({ error: "رمز فعلی و رمز جدید الزامی است." }, 400);
+  if (String(newPassword).length < 6) return jsonResponse({ error: "رمز جدید باید حداقل ۶ کاراکتر باشد." }, 400);
+  const user = await env.DB.prepare("SELECT * FROM admin_users WHERE id = ?").bind(session.uid).first();
+  if (!user) return jsonResponse({ error: "کاربر یافت نشد." }, 404);
+  const ok = await verifyPassword(currentPassword, user.salt, user.password_hash);
+  if (!ok) return jsonResponse({ error: "رمز فعلی اشتباه است." }, 401);
+  const newSalt = randomSaltHex();
+  const newHash = await hashPassword(newPassword, newSalt);
+  await env.DB.prepare("UPDATE admin_users SET password_hash = ?, salt = ? WHERE id = ?").bind(newHash, newSalt, user.id).run();
+  return jsonResponse({ ok: true });
+}
+
 async function adminListMessages(env) {
   const { results } = await env.DB.prepare("SELECT * FROM messages ORDER BY id DESC").all();
   return jsonResponse({ messages: results });
@@ -298,6 +314,15 @@ export default {
     const method = request.method;
 
     try {
+      return await route(request, env, pathname, method);
+    } catch (err) {
+      console.error(err);
+      return jsonResponse({ error: "خطای غیرمنتظره‌ای رخ داد.", detail: String(err && err.message || err) }, 500);
+    }
+  },
+};
+
+async function route(request, env, pathname, method) {
       // ---- public ----
       if (pathname === "/api/products" && method === "GET") return getProducts(request, env);
       let m = pathname.match(/^\/api\/products\/([^/]+)$/);
@@ -319,6 +344,7 @@ export default {
         if (!session) return jsonResponse({ error: "احراز هویت نشده — لطفاً دوباره وارد شوید." }, 401);
 
         if (pathname === "/api/admin/me" && method === "GET") return adminMe(session);
+        if (pathname === "/api/admin/change-password" && method === "POST") return adminChangePassword(request, env, session);
 
         if (pathname === "/api/admin/products" && method === "GET") return adminListProducts(env);
         if (pathname === "/api/admin/products" && method === "POST") return adminCreateProduct(request, env);
@@ -350,8 +376,4 @@ export default {
 
       // ---- anything else: let static assets handle it ----
       return env.ASSETS.fetch(request);
-    } catch (err) {
-      return jsonResponse({ error: "خطای غیرمنتظره‌ای رخ داد." }, 500);
-    }
-  },
-};
+}

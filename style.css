@@ -826,6 +826,28 @@
 .settings-fields .form-field label { display:block; margin-bottom:8px; }
 .settings-fields textarea { min-height: 105px; resize: vertical; }
 
+/* ---------- Admin nav grouping ---------- */
+.admin-nav-label{font-size:10.5px; color:#8FBFDA; text-transform:uppercase; letter-spacing:.06em; margin:14px 14px 4px; font-weight:600;}
+.admin-nav-label:first-child{margin-top:2px;}
+
+/* ---------- Appearance / theme panel ---------- */
+.theme-color-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px;}
+.theme-color-item{display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; border:1px solid var(--line); border-radius:14px; padding:14px 10px;}
+.theme-color-item input[type=color]{width:52px; height:52px; border:none; border-radius:50%; cursor:pointer; padding:0; background:none;}
+.theme-color-item span{font-size:12.5px; color:var(--muted); font-weight:600;}
+
+/* ---------- Layout toggles (advanced panel) ---------- */
+.layout-toggle-list{display:flex; flex-direction:column; gap:2px;}
+.layout-toggle-row{display:flex; align-items:center; justify-content:space-between; padding:14px 4px; border-bottom:1px solid var(--line);}
+.layout-toggle-row:last-child{border-bottom:none;}
+.layout-toggle-row span{font-size:14px; font-weight:500;}
+.switch{position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .slider{position:absolute; cursor:pointer; inset:0; background:var(--line); border-radius:999px; transition:.2s;}
+.switch .slider::before{content:""; position:absolute; height:18px; width:18px; right:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s;}
+.switch input:checked + .slider{background:var(--sage-deep);}
+.switch input:checked + .slider::before{transform:translateX(-20px);}
+
 /* ---------- Admin dashboard upgrades ---------- */
 .dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
 .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(20,80,120,.05)}
