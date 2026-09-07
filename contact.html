@@ -26,6 +26,7 @@
 <a data-setting="site.nav.contact" href="contact.html">تماس با ما</a>
 </nav>
 <a class="nav-cta" data-setting="site.nav.cta" href="contact.html">تماس با ما</a>
+<button aria-expanded="false" aria-label="باز کردن منو" class="nav-toggle" id="navToggle" type="button"><span></span><span></span><span></span></button>
 </div>
 </header>
 <section class="page-hero" data-media-bg="contact.hero">
@@ -53,31 +54,6 @@
 </div>
 </div>
 <div class="map-placeholder"></div>
-</div>
-<div>
-<form id="contactForm">
-<div class="form-row">
-<div class="form-field">
-<label data-setting="contact.form.name_label" for="fname">نام و نام خانوادگی</label>
-<input id="fname" name="name" required="" type="text"/>
-</div>
-<div class="form-field">
-<label data-setting="contact.form.phone_label" for="fphone">شماره تماس</label>
-<input id="fphone" name="phone" type="tel"/>
-</div>
-</div>
-<div class="form-field">
-<label data-setting="contact.form.email_label" for="femail">ایمیل</label>
-<input id="femail" name="email" required="" type="email"/>
-</div>
-<div class="form-field">
-<label data-setting="contact.form.message_label" for="fmsg">پیام شما</label>
-<textarea id="fmsg" name="message" required=""></textarea>
-</div>
-<p class="form-note" data-setting="contact.form.note">این فرم به‌زودی به سرویس ارسال پیام کلودفلر (Workers) متصل می‌شود.</p>
-<button class="btn-primary" data-setting="contact.form.submit" style="border:none; cursor:pointer;" type="submit">ارسال پیام</button>
-<div class="form-status" id="formStatus"></div>
-</form>
 </div>
 </div>
 </section>

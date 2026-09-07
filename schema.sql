@@ -75,3 +75,17 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
   ('contact_phone', '۰۲۱-۰۰۰۰۰۰۰'),
   ('contact_email', 'info@rosearsham.example'),
   ('contact_address', 'پس از نهایی‌شدن، از پنل ادمین ثبت می‌شود');
+
+CREATE TABLE IF NOT EXISTS categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT UNIQUE NOT NULL,
+  label TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO categories (slug, label, sort_order) VALUES
+  ('facial', 'دستمال کاغذی صورت', 1),
+  ('toilet', 'دستمال توالت', 2),
+  ('towel', 'حوله کاغذی', 3),
+  ('napkin', 'دستمال سفره', 4);

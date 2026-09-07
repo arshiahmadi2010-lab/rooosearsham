@@ -19,7 +19,25 @@ async function api(path, options = {}) {
   return data;
 }
 
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg", "image/png", "image/webp", "image/avif",
+  "image/gif", "image/bmp", "image/tiff",
+  "image/x-icon", "image/vnd.microsoft.icon",
+  "image/heic", "image/heif",
+];
+const MAX_UPLOAD_BYTES = 1.5 * 1024 * 1024;
+
 async function uploadFile(file) {
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("فایل انتخابی یک تصویر نیست.");
+  }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error(`فرمت «${file.type}» پشتیبانی نمی‌شود. فرمت‌های مجاز: JPG، PNG، WebP، AVIF، GIF، BMP، TIFF، ICO، HEIC/HEIF.`);
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    throw new Error(`حجم تصویر (${sizeMb} مگابایت) بیشتر از حد مجاز (۱.۵ مگابایت) است.`);
+  }
   const fd = new FormData();
   fd.append("file", file);
   const res = await fetch(API + "/api/admin/upload", { method: "POST", body: fd, credentials: "same-origin" });
@@ -49,8 +67,8 @@ function showDashboard() {
   loadGallery();
   loadSiteMedia();
   loadSettings();
-  loadMessages();
   loadTheme();
+  loadCategories();
 }
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -92,7 +110,7 @@ function openProductModal(product = null) {
   document.getElementById("productModalTitle").textContent = product ? "ویرایش محصول" : "محصول جدید";
   document.getElementById("productId").value = product ? product.id : "";
   document.getElementById("productName").value = product ? product.name : "";
-  document.getElementById("productCategory").value = product ? product.category : "facial";
+  populateProductCategorySelect(product ? product.category : (categoriesCache[0]?.slug || ""));
   document.getElementById("productDesc").value = product ? product.description : "";
   document.getElementById("productActive").checked = product ? !!product.active : true;
   currentProductImages = product && product.images ? [...product.images] : [];
@@ -179,8 +197,15 @@ async function loadProducts() {
   } catch (err) { toast(err.message); }
 }
 
+let categoriesCache = [];
 function categoryLabel(cat) {
-  return { facial: "دستمال صورت", toilet: "دستمال توالت", towel: "حوله کاغذی", napkin: "دستمال سفره" }[cat] || cat;
+  const found = categoriesCache.find(c => c.slug === cat);
+  return found ? found.label : cat;
+}
+function populateProductCategorySelect(selectedSlug) {
+  const sel = document.getElementById("productCategory");
+  sel.innerHTML = categoriesCache.map(c => `<option value="${escapeAttr(c.slug)}">${escapeHtml(c.label)}</option>`).join("");
+  if (selectedSlug) sel.value = selectedSlug;
 }
 
 function renderImageList(containerId, urls) {
@@ -256,7 +281,9 @@ async function loadGallery() {
 const siteMediaModal = document.getElementById("siteMediaModal");
 let currentSiteMediaImage = "";
 const SITE_MEDIA_SLOTS = [
-  ["home.hero", "صفحه اصلی — تصویر اصلی", "تصویر بزرگ بخش اول صفحه اصلی"],
+  ["home.hero", "صفحه اصلی — بنر اسلایدر (۱)", "اسلاید اول بنر اصلی (اگر فقط همین پر شود، بنر ثابت می‌ماند)"],
+  ["home.hero_slide_2", "صفحه اصلی — بنر اسلایدر (۲)", "اسلاید دوم بنر اصلی (اختیاری)"],
+  ["home.hero_slide_3", "صفحه اصلی — بنر اسلایدر (۳)", "اسلاید سوم بنر اصلی (اختیاری)"],
   ["home.about", "صفحه اصلی — درباره ما", "تصویر کنار بخش درباره رز آرشام"],
   ["about.hero", "درباره ما — هدر", "تصویر پس‌زمینه هدر صفحه درباره ما"],
   ["about.story", "درباره ما — داستان", "تصویر بخش داستان و فلسفه"],
@@ -375,30 +402,6 @@ document.getElementById("saveSettingsBtn").addEventListener("click", async () =>
     toast("همه متن‌ها ذخیره شد.");
   } catch (err) { toast(err.message); }
 });
-
-// ==================== MESSAGES ====================
-async function loadMessages() {
-  try {
-    const { messages } = await api("/api/admin/messages");
-    document.getElementById("statMessages").textContent = messages.length;
-    const body = document.getElementById("messagesTableBody");
-    body.innerHTML = messages.map((m) => `
-      <tr>
-        <td>${m.name}</td>
-        <td>${m.email}${m.phone ? " / " + m.phone : ""}</td>
-        <td style="max-width:260px;">${m.message}</td>
-        <td style="white-space:nowrap; color:var(--muted); font-size:12.5px;">${m.created_at}</td>
-        <td><div class="row-actions"><button data-del="${m.id}">حذف</button></div></td>
-      </tr>`).join("") || `<tr><td colspan="6" style="color:var(--muted); text-align:center; padding:24px;">پیامی دریافت نشده است.</td></tr>`;
-
-    body.querySelectorAll("[data-del]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        if (!confirm("این پیام حذف شود؟")) return;
-        await api(`/api/admin/messages/${btn.dataset.del}`, { method: "DELETE" });
-        loadMessages();
-      }));
-  } catch (err) { toast(err.message); }
-}
 
 // ==================== APPEARANCE / THEME ====================
 const THEME_COLORS = [
@@ -586,6 +589,7 @@ document.getElementById("importSettingsInput").addEventListener("change", async 
 
 function loadAdvanced() {
   renderLayoutToggles();
+  loadSectionOrder();
   document.getElementById("seoDescription").value = themeSettingsCache["seo.meta_description"] || "";
   document.getElementById("customCssEditor").value = themeSettingsCache["theme.custom_css"] || "";
   if (themeSettingsCache["seo.favicon_url"]) {
@@ -597,3 +601,103 @@ document.querySelectorAll("[data-go]").forEach(btn => btn.addEventListener("clic
 document.getElementById("quickProduct")?.addEventListener("click", () => openProductModal());
 document.getElementById("quickGallery")?.addEventListener("click", () => document.getElementById("newGalleryBtn").click());
 checkSession();
+
+// ==================== CATEGORIES ====================
+async function loadCategories() {
+  try {
+    const { categories } = await api("/api/admin/categories");
+    categoriesCache = categories;
+    populateProductCategorySelect();
+    const body = document.getElementById("categoriesTableBody");
+    if (!body) return;
+    body.innerHTML = categories.map(c => `
+      <tr>
+        <td><input type="text" value="${escapeAttr(c.label)}" data-cat-label="${c.id}" style="border:1.3px solid var(--line); border-radius:8px; padding:6px 10px; width:100%;"></td>
+        <td style="color:var(--muted); font-size:12.5px;">${escapeHtml(c.slug)}</td>
+        <td><div class="row-actions"><button data-cat-save="${c.id}">ذخیره</button><button data-cat-del="${c.id}">حذف</button></div></td>
+      </tr>`).join("") || `<tr><td colspan="3" style="color:var(--muted); text-align:center; padding:20px;">دسته‌بندی‌ای ثبت نشده است.</td></tr>`;
+
+    body.querySelectorAll("[data-cat-save]").forEach(btn => btn.addEventListener("click", async () => {
+      const id = btn.dataset.catSave;
+      const label = body.querySelector(`[data-cat-label="${id}"]`).value.trim();
+      if (!label) { toast("نام دسته‌بندی نمی‌تواند خالی باشد."); return; }
+      try {
+        await api(`/api/admin/categories/${id}`, { method: "PUT", body: JSON.stringify({ label }) });
+        toast("دسته‌بندی ذخیره شد.");
+        loadCategories();
+      } catch (err) { toast(err.message); }
+    }));
+    body.querySelectorAll("[data-cat-del]").forEach(btn => btn.addEventListener("click", async () => {
+      if (!confirm("این دسته‌بندی حذف شود؟")) return;
+      try {
+        await api(`/api/admin/categories/${btn.dataset.catDel}`, { method: "DELETE" });
+        toast("دسته‌بندی حذف شد.");
+        loadCategories();
+      } catch (err) { toast(err.message); }
+    }));
+  } catch (err) { toast(err.message); }
+}
+
+document.getElementById("addCategoryBtn")?.addEventListener("click", async () => {
+  const input = document.getElementById("newCategoryLabel");
+  const label = input.value.trim();
+  if (!label) { toast("نام دسته‌بندی را وارد کن."); return; }
+  try {
+    await api("/api/admin/categories", { method: "POST", body: JSON.stringify({ label }) });
+    input.value = "";
+    toast("دسته‌بندی اضافه شد.");
+    loadCategories();
+  } catch (err) { toast(err.message); }
+});
+
+// ==================== HOMEPAGE SECTION ORDER ====================
+const SECTION_ORDER_ITEMS = [
+  { id: "about", label: "درباره ما" },
+  { id: "products", label: "محصولات" },
+  { id: "process", label: "فرآیند تولید" },
+  { id: "gallery", label: "نگاهی به گالری" },
+];
+let currentSectionOrder = SECTION_ORDER_ITEMS.map(s => s.id);
+
+function renderSectionOrder() {
+  const list = document.getElementById("sectionOrderList");
+  if (!list) return;
+  list.innerHTML = currentSectionOrder.map((id, idx) => {
+    const item = SECTION_ORDER_ITEMS.find(s => s.id === id);
+    if (!item) return "";
+    return `
+    <li data-order-id="${id}" style="display:flex; align-items:center; justify-content:space-between; border:1.3px solid var(--line); border-radius:10px; padding:10px 14px;">
+      <span>${item.label}</span>
+      <div style="display:flex; gap:6px;">
+        <button type="button" class="btn-small" data-move-up="${idx}" ${idx === 0 ? "disabled" : ""}>▲</button>
+        <button type="button" class="btn-small" data-move-down="${idx}" ${idx === currentSectionOrder.length - 1 ? "disabled" : ""}>▼</button>
+      </div>
+    </li>`;
+  }).join("");
+  list.querySelectorAll("[data-move-up]").forEach(btn => btn.addEventListener("click", () => {
+    const i = Number(btn.dataset.moveUp);
+    [currentSectionOrder[i - 1], currentSectionOrder[i]] = [currentSectionOrder[i], currentSectionOrder[i - 1]];
+    renderSectionOrder();
+  }));
+  list.querySelectorAll("[data-move-down]").forEach(btn => btn.addEventListener("click", () => {
+    const i = Number(btn.dataset.moveDown);
+    [currentSectionOrder[i + 1], currentSectionOrder[i]] = [currentSectionOrder[i], currentSectionOrder[i + 1]];
+    renderSectionOrder();
+  }));
+}
+
+function loadSectionOrder() {
+  try {
+    const saved = JSON.parse(themeSettingsCache["home.sections_order"] || "null");
+    if (Array.isArray(saved) && saved.length) currentSectionOrder = saved;
+  } catch {}
+  renderSectionOrder();
+}
+
+document.getElementById("saveSectionOrderBtn")?.addEventListener("click", async () => {
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify({ "home.sections_order": JSON.stringify(currentSectionOrder) }) });
+    themeSettingsCache["home.sections_order"] = JSON.stringify(currentSectionOrder);
+    toast("چیدمان صفحه اصلی ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});

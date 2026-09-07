@@ -48,7 +48,6 @@
       <div class="admin-nav-label">پیشرفته</div>
       <button data-panel="advanced">تنظیمات پیشرفته</button>
       <div class="admin-nav-label">مدیریت</div>
-      <button data-panel="messages">پیام‌ها</button>
       <button data-panel="account">حساب کاربری</button>
     </nav>
     <button class="admin-logout" id="logoutBtn">خروج از حساب</button>
@@ -62,7 +61,6 @@
       <div class="dashboard-grid">
         <div class="stat-card"><span>محصولات</span><strong id="statProducts">—</strong><button class="btn-small" data-go="products">مدیریت</button></div>
         <div class="stat-card"><span>تصاویر گالری</span><strong id="statGallery">—</strong><button class="btn-small" data-go="gallery">مدیریت</button></div>
-        <div class="stat-card"><span>پیام‌ها</span><strong id="statMessages">—</strong><button class="btn-small" data-go="messages">مشاهده</button></div>
         <div class="stat-card"><span>متن‌های سایت</span><strong>ویرایش</strong><button class="btn-small" data-go="settings">مدیریت</button></div>
       </div>
       <div class="admin-card quick-actions"><h3>دسترسی سریع</h3><div><button class="btn-primary" id="quickProduct">+ افزودن محصول</button><button class="btn-small" id="quickGallery">+ افزودن تصویر</button></div></div>
@@ -128,22 +126,6 @@
       <div class="admin-card">
         <div id="settingsFields" class="settings-fields"></div>
         <button type="button" class="btn-primary" id="saveSettingsBtn" style="border:none; cursor:pointer;">ذخیره همه متن‌ها</button>
-      </div>
-    </section>
-
-    <!-- MESSAGES -->
-    <section class="admin-panel" data-panel="messages">
-      <div class="admin-head">
-        <div>
-          <h1>پیام‌های تماس</h1>
-          <p>پیام‌های ارسالی از فرم تماس با ما.</p>
-        </div>
-      </div>
-      <div class="admin-card">
-        <table class="admin-table">
-          <thead><tr><th>نام</th><th>ایمیل / تلفن</th><th>پیام</th><th>تاریخ</th><th></th></tr></thead>
-          <tbody id="messagesTableBody"></tbody>
-        </table>
       </div>
     </section>
 
@@ -213,6 +195,26 @@
       </div>
 
       <div class="admin-card">
+        <h3 style="margin-bottom:8px;">دسته‌بندی‌های محصولات</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">دسته‌بندی‌های سایت را اضافه، ویرایش یا حذف کن.</p>
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+          <input id="newCategoryLabel" type="text" placeholder="نام دسته‌بندی جدید" style="flex:1; border:1.3px solid var(--line); border-radius:10px; padding:11px 14px; font-family:var(--font-body); background:var(--paper);">
+          <button type="button" class="btn-primary" id="addCategoryBtn" style="border:none; cursor:pointer;">افزودن</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>نام</th><th>اسلاگ</th><th></th></tr></thead>
+          <tbody id="categoriesTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="admin-card">
+        <h3 style="margin-bottom:8px;">چیدمان بخش‌های صفحه اصلی</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">با دکمه‌های بالا/پایین ترتیب نمایش بخش‌ها در صفحه اصلی را تغییر بده.</p>
+        <ul id="sectionOrderList" style="list-style:none; display:flex; flex-direction:column; gap:8px;"></ul>
+        <button type="button" class="btn-primary" id="saveSectionOrderBtn" style="border:none; cursor:pointer; margin-top:14px;">ذخیره چیدمان</button>
+      </div>
+
+      <div class="admin-card">
         <h3 style="margin-bottom:8px;">CSS اختصاصی</h3>
         <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">دستت کاملاً بازه — هر CSS دلخواهی رو اینجا بنویس تا مستقیم روی سایت اعمال بشه. اگه با CSS آشنا نیستی، از این بخش صرف‌نظر کن.</p>
         <textarea id="customCssEditor" spellcheck="false" style="width:100%; min-height:220px; font-family:monospace; font-size:13px; direction:ltr; text-align:left; border:1.3px solid var(--line); border-radius:10px; padding:14px; background:var(--paper); color:var(--ink);" placeholder=".hero h1{ font-size: 60px; }"></textarea>
@@ -245,12 +247,7 @@
       </div>
       <div class="form-field">
         <label for="productCategory">دسته‌بندی</label>
-        <select id="productCategory" style="width:100%; border:1.3px solid var(--line); border-radius:10px; padding:13px 16px; font-family:var(--font-body); background:var(--paper);">
-          <option value="facial">دستمال کاغذی صورت</option>
-          <option value="toilet">دستمال توالت</option>
-          <option value="towel">حوله کاغذی</option>
-          <option value="napkin">دستمال سفره</option>
-        </select>
+        <select id="productCategory" style="width:100%; border:1.3px solid var(--line); border-radius:10px; padding:13px 16px; font-family:var(--font-body); background:var(--paper);"></select>
       </div>
       <div class="form-field">
         <label for="productDesc">توضیح کوتاه</label>

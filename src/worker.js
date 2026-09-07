@@ -102,14 +102,9 @@ async function getSettings(request, env) {
   return jsonResponse({ settings });
 }
 
-async function postContact(request, env) {
-  const body = await readJson(request);
-  const { name, email, phone = "", message } = body || {};
-  if (!name || !email || !message) return jsonResponse({ error: "نام، ایمیل و پیام الزامی است." }, 400);
-  await env.DB.prepare(
-    "INSERT INTO messages (name, email, phone, message, created_at) VALUES (?, ?, ?, ?, datetime('now'))"
-  ).bind(name, email, phone, message).run();
-  return jsonResponse({ ok: true });
+async function getCategories(env) {
+  const { results } = await env.DB.prepare("SELECT * FROM categories ORDER BY sort_order ASC, id ASC").all();
+  return jsonResponse({ categories: results });
 }
 
 async function postLogin(request, env) {
@@ -245,14 +240,32 @@ async function adminDeleteGalleryImage(env, id) {
 }
 
 async function adminUpload(request, env) {
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+  const ALLOWED_TYPES = [
+    "image/jpeg", "image/png", "image/webp", "image/avif",
+    "image/gif", "image/bmp", "image/tiff",
+    "image/x-icon", "image/vnd.microsoft.icon",
+    "image/heic", "image/heif",
+  ];
   const MAX_BYTES = 1.5 * 1024 * 1024;
 
-  const formData = await request.formData();
+  let formData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return jsonResponse({ error: "درخواست آپلود نامعتبر است." }, 400);
+  }
   const file = formData.get("file");
   if (!file || typeof file === "string") return jsonResponse({ error: "فایلی ارسال نشده است." }, 400);
-  if (!ALLOWED_TYPES.includes(file.type)) return jsonResponse({ error: "فقط تصاویر JPG، PNG، WebP یا AVIF مجاز است." }, 400);
-  if (file.size > MAX_BYTES) return jsonResponse({ error: "حجم تصویر نباید بیشتر از ۱.۵ مگابایت باشد." }, 400);
+  if (!file.type || !file.type.startsWith("image/")) {
+    return jsonResponse({ error: "فایل انتخابی یک تصویر نیست." }, 400);
+  }
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return jsonResponse({ error: `فرمت «${file.type}» پشتیبانی نمی‌شود. فرمت‌های مجاز: JPG، PNG، WebP، AVIF، GIF، BMP، TIFF، ICO، HEIC/HEIF.` }, 400);
+  }
+  if (file.size > MAX_BYTES) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    return jsonResponse({ error: `حجم تصویر (${sizeMb} مگابایت) بیشتر از حد مجاز (۱.۵ مگابایت) است.` }, 400);
+  }
 
   const buffer = await file.arrayBuffer();
   const base64 = bufferToBase64(buffer);
@@ -295,13 +308,44 @@ async function adminChangePassword(request, env, session) {
   return jsonResponse({ ok: true });
 }
 
-async function adminListMessages(env) {
-  const { results } = await env.DB.prepare("SELECT * FROM messages ORDER BY id DESC").all();
-  return jsonResponse({ messages: results });
+// ==================== CATEGORIES ====================
+async function adminListCategories(env) {
+  const { results } = await env.DB.prepare("SELECT * FROM categories ORDER BY sort_order ASC, id ASC").all();
+  return jsonResponse({ categories: results });
 }
 
-async function adminDeleteMessage(env, id) {
-  await env.DB.prepare("DELETE FROM messages WHERE id = ?").bind(id).run();
+async function adminCreateCategory(request, env) {
+  const body = await readJson(request);
+  const { label, slug: rawSlug } = body || {};
+  if (!label || !String(label).trim()) return jsonResponse({ error: "نام دسته‌بندی الزامی است." }, 400);
+  const slug = slugify(rawSlug && String(rawSlug).trim() ? rawSlug : label);
+  if (!slug) return jsonResponse({ error: "اسلاگ نامعتبر است." }, 400);
+  const existing = await env.DB.prepare("SELECT id FROM categories WHERE slug = ?").bind(slug).first();
+  if (existing) return jsonResponse({ error: "دسته‌بندی‌ای با این اسلاگ قبلاً وجود دارد." }, 400);
+  const { results: maxRows } = await env.DB.prepare("SELECT COALESCE(MAX(sort_order), 0) AS m FROM categories").all();
+  const nextOrder = (maxRows?.[0]?.m || 0) + 1;
+  const result = await env.DB.prepare("INSERT INTO categories (slug, label, sort_order) VALUES (?, ?, ?)")
+    .bind(slug, String(label).trim(), nextOrder).run();
+  return jsonResponse({ ok: true, id: result.meta.last_row_id, slug }, 201);
+}
+
+async function adminUpdateCategory(request, env, id) {
+  const body = await readJson(request);
+  const { label, sort_order } = body || {};
+  if (!label || !String(label).trim()) return jsonResponse({ error: "نام دسته‌بندی الزامی است." }, 400);
+  await env.DB.prepare("UPDATE categories SET label = ?, sort_order = COALESCE(?, sort_order) WHERE id = ?")
+    .bind(String(label).trim(), sort_order ?? null, id).run();
+  return jsonResponse({ ok: true });
+}
+
+async function adminDeleteCategory(env, id) {
+  const cat = await env.DB.prepare("SELECT slug FROM categories WHERE id = ?").bind(id).first();
+  if (!cat) return jsonResponse({ error: "دسته‌بندی یافت نشد." }, 404);
+  const used = await env.DB.prepare("SELECT COUNT(*) AS c FROM products WHERE category = ?").bind(cat.slug).first();
+  if (used && used.c > 0) {
+    return jsonResponse({ error: `این دسته‌بندی برای ${used.c} محصول استفاده شده و قابل حذف نیست. ابتدا دسته‌بندی آن محصولات را تغییر دهید.` }, 400);
+  }
+  await env.DB.prepare("DELETE FROM categories WHERE id = ?").bind(id).run();
   return jsonResponse({ ok: true });
 }
 
@@ -330,8 +374,8 @@ async function route(request, env, pathname, method) {
 
       if (pathname === "/api/gallery" && method === "GET") return getGallery(request, env);
       if (pathname === "/api/settings" && method === "GET") return getSettings(request, env);
+      if (pathname === "/api/categories" && method === "GET") return getCategories(env);
       if (pathname === "/api/site-media" && method === "GET") return getSiteMedia(request, env);
-      if (pathname === "/api/contact" && method === "POST") return postContact(request, env);
       if (pathname === "/api/login" && method === "POST") return postLogin(request, env);
       if (pathname === "/api/logout" && method === "POST") return postLogout();
 
@@ -367,9 +411,11 @@ async function route(request, env, pathname, method) {
         if (pathname === "/api/admin/settings" && method === "PUT") return adminUpdateSettings(request, env);
         if (pathname === "/api/admin/settings" && method === "GET") return adminGetSettings(env);
 
-        if (pathname === "/api/admin/messages" && method === "GET") return adminListMessages(env);
-        m = pathname.match(/^\/api\/admin\/messages\/([^/]+)$/);
-        if (m && method === "DELETE") return adminDeleteMessage(env, m[1]);
+        if (pathname === "/api/admin/categories" && method === "GET") return adminListCategories(env);
+        if (pathname === "/api/admin/categories" && method === "POST") return adminCreateCategory(request, env);
+        m = pathname.match(/^\/api\/admin\/categories\/(\d+)$/);
+        if (m && method === "PUT") return adminUpdateCategory(request, env, m[1]);
+        if (m && method === "DELETE") return adminDeleteCategory(env, m[1]);
 
         return jsonResponse({ error: "مسیر یافت نشد." }, 404);
       }

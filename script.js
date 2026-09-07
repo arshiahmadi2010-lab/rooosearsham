@@ -32,31 +32,7 @@ document.querySelectorAll('.filter-tabs').forEach(tabGroup => {
   });
 });
 
-// ---------- contact form ----------
-const contactForm = document.getElementById('contactForm');
-if(contactForm){
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const status = document.getElementById('formStatus');
-    const data = Object.fromEntries(new FormData(contactForm).entries());
-    status.className = 'form-status show';
-    status.textContent = copy("site.contact.sending", "در حال ارسال...");
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if(!res.ok) throw new Error('failed');
-      status.className = 'form-status show ok';
-      status.textContent = copy("site.contact.success", "پیام شما با موفقیت ارسال شد. به‌زودی با شما تماس می‌گیریم.");
-      contactForm.reset();
-    } catch (err) {
-      status.className = 'form-status show err';
-      status.textContent = copy("site.contact.error", "ارسال پیام ممکن نشد. لطفاً بعداً دوباره تلاش کنید یا مستقیم تماس بگیرید.");
-    }
-  });
-}
+// ---------- contact form removed ----------
 
 // ==================== LIVE CONTENT FROM THE API ====================
 // Loads real data (products, gallery, site texts) from the backend and
@@ -78,7 +54,20 @@ function setText(id, value) {
 }
 
 let siteSettings = {};
-const categoryLabels = { facial: "دستمال کاغذی صورت", toilet: "دستمال توالت", towel: "حوله کاغذی", napkin: "دستمال سفره" };
+let categoryLabels = {};
+const categoriesReady = (async function loadCategories() {
+  try {
+    const data = await fetchJSON("/api/categories");
+    const cats = (data && data.categories) || [];
+    categoryLabels = Object.fromEntries(cats.map(c => [c.slug, c.label]));
+    const tabs = document.getElementById("filterTabs");
+    if (tabs && cats.length) {
+      tabs.innerHTML = `<button class="filter-tab active" data-filter="all">همه</button>` +
+        cats.map(c => `<button class="filter-tab" data-filter="${c.slug}">${c.label}</button>`).join("");
+    }
+    return categoryLabels;
+  } catch { return {}; }
+})();
 function copy(key, fallback = "") { return siteSettings[key] ?? fallback; }
 
 // ---------- site texts / settings ----------
@@ -109,7 +98,29 @@ async function loadSiteMedia() {
     });
   } catch {}
 }
-loadSiteMedia();
+loadSiteMedia().then(initHeroSlider);
+
+// ---------- hero banner slider ----------
+function initHeroSlider() {
+  const slider = document.getElementById("heroSlider");
+  if (!slider) return;
+  const slides = [...slider.querySelectorAll(".hero-slide")].filter(s => s.style.display !== "none");
+  if (!slides.length) return;
+  const dotsBox = document.getElementById("heroSliderDots");
+  let i = 0;
+  slides.forEach((s, idx) => s.classList.toggle("active", idx === 0));
+  if (slides.length > 1 && dotsBox) {
+    dotsBox.innerHTML = slides.map((_, idx) => `<button data-i="${idx}" class="${idx === 0 ? "active" : ""}"></button>`).join("");
+    const dots = [...dotsBox.querySelectorAll("button")];
+    function show(n) {
+      i = n;
+      slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+      dots.forEach((d, idx) => d.classList.toggle("active", idx === i));
+    }
+    dots.forEach(d => d.addEventListener("click", () => show(Number(d.dataset.i))));
+    setInterval(() => show((i + 1) % slides.length), 5000);
+  }
+}
 
 const settingsReady = (async function loadSettings() {
   const data = await fetchJSON("/api/settings");
@@ -161,6 +172,21 @@ const settingsReady = (async function loadSettings() {
     if (s[key] === "0") { const el = document.getElementById(id); if (el) el.style.display = "none"; }
   });
 
+  // Homepage section reordering (admin-controlled)
+  if (s["home.sections_order"]) {
+    try {
+      const order = JSON.parse(s["home.sections_order"]);
+      const container = document.querySelector(".hero")?.parentElement;
+      if (container && Array.isArray(order)) {
+        const footer = document.querySelector("footer");
+        order.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) container.insertBefore(el, footer);
+        });
+      }
+    } catch {}
+  }
+
   // Every static editable text on the site is marked with data-setting.
   document.querySelectorAll("[data-setting]").forEach((el) => {
     const key = el.dataset.setting;
@@ -172,10 +198,6 @@ const settingsReady = (async function loadSettings() {
   setText("contactAddress", s.contact_address);
   setText("footerPhone", s.contact_phone);
   setText("footerEmail", s.contact_email);
-  if (s["site.category.facial"]) categoryLabels.facial = s["site.category.facial"];
-  if (s["site.category.toilet"]) categoryLabels.toilet = s["site.category.toilet"];
-  if (s["site.category.towel"]) categoryLabels.towel = s["site.category.towel"];
-  if (s["site.category.napkin"]) categoryLabels.napkin = s["site.category.napkin"];
   const phoneLink = document.getElementById("contactPhone") || document.getElementById("footerPhone");
   if (phoneLink && s.contact_phone) {
     document.querySelectorAll('a[href^="tel:"]').forEach((a) => { a.href = "tel:" + s.contact_phone.replace(/[^0-9+]/g, ""); });
@@ -255,6 +277,7 @@ function galleryItemHTML(g) {
 // ---------- product-detail.html: single product ----------
 (async function loadProductDetail() {
   await settingsReady;
+  await categoriesReady;
   const wrap = document.getElementById("detailLoaded");
   if (!wrap) return;
   const emptyEl = document.getElementById("detailEmpty");
@@ -287,4 +310,23 @@ function galleryItemHTML(g) {
   }
 
   wrap.style.display = "grid";
+})();
+
+// ---------- mobile nav toggle ----------
+(function () {
+  const toggle = document.getElementById("navToggle");
+  const links = document.querySelector(".nav-links");
+  if (!toggle || !links) return;
+  toggle.addEventListener("click", () => {
+    const open = links.classList.toggle("open");
+    toggle.classList.toggle("open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  links.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", () => {
+      links.classList.remove("open");
+      toggle.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+    });
+  });
 })();
