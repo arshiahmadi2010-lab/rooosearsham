@@ -595,7 +595,23 @@ function loadAdvanced() {
   if (themeSettingsCache["seo.favicon_url"]) {
     document.getElementById("faviconPreview").innerHTML = `<img src="${themeSettingsCache["seo.favicon_url"]}" alt="">`;
   }
+  document.getElementById("csEnabled").checked = themeSettingsCache["comingsoon_enabled"] === "1";
+  document.getElementById("csText").value = themeSettingsCache["comingsoon_text"] || "";
+  document.getElementById("csPassword").value = themeSettingsCache["comingsoon_password"] || "";
 }
+
+document.getElementById("saveComingSoonBtn").addEventListener("click", async () => {
+  const payload = {
+    comingsoon_enabled: document.getElementById("csEnabled").checked ? "1" : "0",
+    comingsoon_text: document.getElementById("csText").value,
+    comingsoon_password: document.getElementById("csPassword").value,
+  };
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    Object.assign(themeSettingsCache, payload);
+    toast("تنظیمات حالت به‌زودی ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
 
 document.querySelectorAll("[data-go]").forEach(btn => btn.addEventListener("click", () => document.querySelector(`button[data-panel="${btn.dataset.go}"]`)?.click()));
 document.getElementById("quickProduct")?.addEventListener("click", () => openProductModal());

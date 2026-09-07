@@ -175,6 +175,17 @@
       <div class="admin-head"><div><h1>تنظیمات پیشرفته</h1><p>چیدمان صفحه اصلی، سئو، CSS اختصاصی و پشتیبان‌گیری از تنظیمات.</p></div></div>
 
       <div class="admin-card">
+        <h3 style="margin-bottom:14px;">حالت به‌زودی (قفل سایت)</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">وقتی فعال باشد، فقط با وارد کردن رمز می‌توان سایت اصلی را دید. پنل ادمین همیشه در دسترس است.</p>
+        <div class="settings-fields">
+          <div class="form-field"><label><input type="checkbox" id="csEnabled"> فعال باشد</label></div>
+          <div class="form-field"><label for="csText">متن نمایش داده‌شده</label><textarea id="csText" placeholder="به زودی برمی‌گردیم"></textarea></div>
+          <div class="form-field"><label for="csPassword">رمز عبور ورود به سایت</label><input id="csPassword" type="text" placeholder="رمز دلخواه"></div>
+        </div>
+        <button type="button" class="btn-primary" id="saveComingSoonBtn" style="border:none; cursor:pointer;">ذخیره حالت به‌زودی</button>
+      </div>
+
+      <div class="admin-card">
         <h3 style="margin-bottom:14px;">چیدمان صفحه اصلی</h3>
         <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">هر بخش را می‌توانی بدون حذف محتوا، از صفحه اصلی مخفی کنی.</p>
         <div class="layout-toggle-list" id="layoutToggleList"></div>
