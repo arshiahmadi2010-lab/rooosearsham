@@ -743,6 +743,17 @@ document.getElementById("openVisualEditorBtn")?.addEventListener("click", async 
       const doc = gjsEditor.Canvas.getDocument();
       if (doc && doc.documentElement) doc.documentElement.setAttribute("dir", "rtl");
     });
+    gjsEditor.on("component:selected", (c) => {
+      const cur = c.getStyle();
+      if (cur.position === "absolute") return;
+      const el = c.getEl();
+      if (!el) return;
+      const parent = el.offsetParent || el.parentElement;
+      if (!parent) return;
+      const rect = el.getBoundingClientRect();
+      const prect = parent.getBoundingClientRect();
+      c.addStyle({ position: "absolute", top: (rect.top - prect.top) + "px", left: (rect.left - prect.left) + "px", margin: 0 });
+    });
   }
   let html = themeSettingsCache["page_html_" + page] || "";
   let css = themeSettingsCache["page_css_" + page] || "";
