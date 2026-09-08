@@ -717,3 +717,49 @@ document.getElementById("saveSectionOrderBtn")?.addEventListener("click", async 
     toast("چیدمان صفحه اصلی ذخیره شد.");
   } catch (err) { toast(err.message); }
 });
+
+// ---------- visual page editor (GrapesJS) ----------
+let gjsEditor = null;
+const GJS_PAGE_TITLES = { index: "صفحه اصلی", about: "درباره ما", gallery: "گالری", contact: "تماس با ما", products: "محصولات" };
+
+document.getElementById("openVisualEditorBtn")?.addEventListener("click", async () => {
+  const page = document.getElementById("gjsPage").value;
+  document.getElementById("gjsPageLabel").textContent = GJS_PAGE_TITLES[page] || page;
+  document.getElementById("gjsOverlay").style.display = "flex";
+  if (!gjsEditor) {
+    gjsEditor = grapesjs.init({ container: "#gjsEditor", height: "100%", storageManager: false, fromElement: false });
+  }
+  let html = themeSettingsCache["page_html_" + page] || "";
+  let css = themeSettingsCache["page_css_" + page] || "";
+  if (!html) {
+    const res = await fetch("/" + page + ".html");
+    html = await res.text();
+  }
+  gjsEditor.setComponents(html);
+  gjsEditor.setStyle(css);
+});
+
+document.getElementById("gjsSaveBtn")?.addEventListener("click", async () => {
+  const page = document.getElementById("gjsPage").value;
+  const payload = { ["page_html_" + page]: gjsEditor.getHtml(), ["page_css_" + page]: gjsEditor.getCss() };
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    Object.assign(themeSettingsCache, payload);
+    toast("صفحه ذخیره شد.");
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("gjsResetBtn")?.addEventListener("click", async () => {
+  const page = document.getElementById("gjsPage").value;
+  const payload = { ["page_html_" + page]: "", ["page_css_" + page]: "" };
+  try {
+    await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
+    Object.assign(themeSettingsCache, payload);
+    toast("به حالت پیش‌فرض برگشت.");
+    document.getElementById("gjsOverlay").style.display = "none";
+  } catch (err) { toast(err.message); }
+});
+
+document.getElementById("gjsCloseBtn")?.addEventListener("click", () => {
+  document.getElementById("gjsOverlay").style.display = "none";
+});

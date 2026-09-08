@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
 </head>
 <body class="admin-body">
 
@@ -133,6 +134,22 @@
     <section class="admin-panel" data-panel="appearance">
       <div class="admin-head"><div><h1>ظاهر و تم سایت</h1><p>رنگ‌ها و فونت سایت را بدون کدنویسی تغییر بده. تغییرات بلافاصله روی سایت اعمال می‌شود.</p></div></div>
       <div class="admin-card">
+        <h3 style="margin-bottom:16px;">ویرایشگر بصری صفحات</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">متن، عکس، بک‌گراند و چیدمان هر صفحه را با کشیدن و رهاکردن تغییر بده.</p>
+        <div class="settings-fields">
+          <div class="form-field"><label for="gjsPage">صفحه</label>
+            <select id="gjsPage">
+              <option value="index">صفحه اصلی</option>
+              <option value="about">درباره ما</option>
+              <option value="gallery">گالری</option>
+              <option value="contact">تماس با ما</option>
+              <option value="products">محصولات</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="openVisualEditorBtn" style="border:none; cursor:pointer;">باز کردن ویرایشگر بصری</button>
+      </div>
+      <div class="admin-card">
         <h3 style="margin-bottom:16px;">رنگ‌ها</h3>
         <div class="theme-color-grid" id="themeColorGrid"></div>
       </div>
@@ -245,6 +262,19 @@
 
   </main>
 </div>
+
+<div id="gjsOverlay" style="display:none; position:fixed; inset:0; background:#fff; z-index:9999; flex-direction:column;">
+  <div style="display:flex; gap:10px; align-items:center; padding:10px 16px; border-bottom:1px solid #eee;">
+    <strong id="gjsPageLabel"></strong>
+    <div style="flex:1;"></div>
+    <button type="button" class="btn-small secondary" id="gjsResetBtn">بازگشت به پیش‌فرض</button>
+    <button type="button" class="btn-primary" id="gjsSaveBtn" style="border:none; cursor:pointer;">ذخیره</button>
+    <button type="button" class="btn-small secondary" id="gjsCloseBtn">بستن</button>
+  </div>
+  <div id="gjsEditor" style="flex:1; overflow:hidden;"></div>
+</div>
+
+<script src="https://unpkg.com/grapesjs"></script>
 
 <!-- ---------------- PRODUCT MODAL ---------------- -->
 <div class="modal-backdrop" id="productModal">

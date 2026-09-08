@@ -478,6 +478,27 @@ async function route(request, env, pathname, method) {
         }
       }
 
+      // ---------- custom visual-editor pages ----------
+const PAGE_KEYS = { "/": "index", "/index.html": "index", "/about.html": "about", "/gallery.html": "gallery", "/contact.html": "contact", "/products.html": "products" };
+
+async function getCustomPage(env, key) {
+  const { results } = await env.DB.prepare("SELECT key, value FROM settings WHERE key IN (?, ?)").bind("page_html_" + key, "page_css_" + key).all();
+  const s = {};
+  for (const r of results) s[r.key] = r.value;
+  return { html: s["page_html_" + key] || "", css: s["page_css_" + key] || "" };
+}
+
+function customPageResponse(html, css) {
+  return new Response(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><style>${css}</style></head><body>${html}</body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
+
+      // ---- custom visual-editor page override ----
+      const pageKey = PAGE_KEYS[pathname];
+      if (pageKey) {
+        const cp = await getCustomPage(env, pageKey);
+        if (cp.html) return customPageResponse(cp.html, cp.css);
+      }
+
       // ---- anything else: let static assets handle it ----
       return env.ASSETS.fetch(request);
 }

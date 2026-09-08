@@ -130,6 +130,55 @@ async function postLogout() {
   return jsonResponse({ ok: true }, 200, { "Set-Cookie": clearSessionCookieHeader() });
 }
 
+// ---------- coming-soon gate ----------
+const GATED_PATHS = new Set(["/", "/index.html", "/products.html", "/product-detail.html", "/gallery.html", "/about.html", "/contact.html"]);
+
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function getGateSettings(env) {
+  const { results } = await env.DB.prepare("SELECT key, value FROM settings WHERE key IN ('comingsoon_enabled','comingsoon_text','comingsoon_password')").all();
+  const s = {};
+  for (const r of results) s[r.key] = r.value;
+  return s;
+}
+
+function gateCookieHeader(token) {
+  return `gate=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${60 * 60 * 24 * 30}`;
+}
+
+async function isUnlocked(request, env) {
+  const token = getCookie(request, "gate");
+  const payload = token ? await verifySessionToken(token, env.SESSION_SECRET) : null;
+  return !!(payload && payload.gate === true);
+}
+
+function comingSoonHtml(text) {
+  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>به‌زودی</title><link rel="stylesheet" href="/style.css"><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf7f2}.gate-box{max-width:420px;width:90%;text-align:center;padding:2rem;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08)}.gate-box input{width:100%;padding:.7rem;margin:1rem 0;border:1px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box}.gate-box button{width:100%;padding:.7rem;border:none;border-radius:8px;background:#b76e79;color:#fff;font-size:1rem;cursor:pointer}.gate-err{color:#c0392b;min-height:1.2em;font-size:.9rem}</style></head><body>
+<div class="gate-box">
+<h2>${escapeHtml(text || "به زودی برمی‌گردیم")}</h2>
+<form id="gf"><input type="password" id="gp" placeholder="رمز عبور" autofocus><div class="gate-err" id="ge"></div><button type="submit">ورود</button></form>
+</div>
+<script>
+document.getElementById('gf').addEventListener('submit', async (e)=>{e.preventDefault();
+const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('gp').value})});
+if(r.ok){location.reload();}else{document.getElementById('ge').textContent='رمز اشتباه است.';}
+});
+</script>
+</body></html>`;
+}
+
+async function postUnlock(request, env) {
+  const body = await readJson(request);
+  const s = await getGateSettings(env);
+  if (!body || !body.password || body.password !== (s.comingsoon_password || "")) {
+    return jsonResponse({ error: "رمز اشتباه است." }, 401);
+  }
+  const token = await createSessionToken({ gate: true }, env.SESSION_SECRET, 60 * 60 * 24 * 30);
+  return jsonResponse({ ok: true }, 200, { "Set-Cookie": gateCookieHeader(token) });
+}
+
 async function getSiteMedia(request, env) {
   const rows = await env.DB.prepare("SELECT * FROM site_media WHERE active = 1 ORDER BY id ASC").all();
   return jsonResponse({ media: rows.results || [] });
@@ -318,6 +367,7 @@ async function route(request, env, pathname, method) {
       if (pathname === "/api/contact" && method === "POST") return postContact(request, env);
       if (pathname === "/api/login" && method === "POST") return postLogin(request, env);
       if (pathname === "/api/logout" && method === "POST") return postLogout();
+      if (pathname === "/api/unlock" && method === "POST") return postUnlock(request, env);
 
       m = pathname.match(/^\/api\/media\/([^/]+)$/);
       if (m && method === "GET") return getMedia(request, env, m[1]);
@@ -355,6 +405,35 @@ async function route(request, env, pathname, method) {
         if (m && method === "DELETE") return adminDeleteMessage(env, m[1]);
 
         return jsonResponse({ error: "مسیر یافت نشد." }, 404);
+      }
+
+      // ---- coming-soon gate (main site pages only; /admin untouched) ----
+      if (GATED_PATHS.has(pathname)) {
+        const s = await getGateSettings(env);
+        if (s.comingsoon_enabled === "1" && !(await isUnlocked(request, env))) {
+          return new Response(comingSoonHtml(s.comingsoon_text), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+        }
+      }
+
+      // ---------- custom visual-editor pages ----------
+const PAGE_KEYS = { "/": "index", "/index.html": "index", "/about.html": "about", "/gallery.html": "gallery", "/contact.html": "contact", "/products.html": "products" };
+
+async function getCustomPage(env, key) {
+  const { results } = await env.DB.prepare("SELECT key, value FROM settings WHERE key IN (?, ?)").bind("page_html_" + key, "page_css_" + key).all();
+  const s = {};
+  for (const r of results) s[r.key] = r.value;
+  return { html: s["page_html_" + key] || "", css: s["page_css_" + key] || "" };
+}
+
+function customPageResponse(html, css) {
+  return new Response(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><style>${css}</style></head><body>${html}</body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
+
+      // ---- custom visual-editor page override ----
+      const pageKey = PAGE_KEYS[pathname];
+      if (pageKey) {
+        const cp = await getCustomPage(env, pageKey);
+        if (cp.html) return customPageResponse(cp.html, cp.css);
       }
 
       // ---- anything else: let static assets handle it ----
