@@ -727,13 +727,29 @@ document.getElementById("openVisualEditorBtn")?.addEventListener("click", async 
   document.getElementById("gjsPageLabel").textContent = GJS_PAGE_TITLES[page] || page;
   document.getElementById("gjsOverlay").style.display = "flex";
   if (!gjsEditor) {
-    gjsEditor = grapesjs.init({ container: "#gjsEditor", height: "100%", storageManager: false, fromElement: false });
+    gjsEditor = grapesjs.init({
+      container: "#gjsEditor",
+      height: "100%",
+      storageManager: false,
+      fromElement: false,
+      canvas: {
+        styles: [
+          "/style.css",
+          "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap",
+        ],
+      },
+    });
+    gjsEditor.on("load", () => {
+      const doc = gjsEditor.Canvas.getDocument();
+      if (doc && doc.documentElement) doc.documentElement.setAttribute("dir", "rtl");
+    });
   }
   let html = themeSettingsCache["page_html_" + page] || "";
   let css = themeSettingsCache["page_css_" + page] || "";
   if (!html) {
     const res = await fetch("/" + page + ".html");
     html = await res.text();
+    html = `<base href="${location.origin}/">` + html;
   }
   gjsEditor.setComponents(html);
   gjsEditor.setStyle(css);
