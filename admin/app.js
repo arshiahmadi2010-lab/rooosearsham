@@ -718,43 +718,83 @@ document.getElementById("saveSectionOrderBtn")?.addEventListener("click", async 
   } catch (err) { toast(err.message); }
 });
 
-// ---------- visual page editor (GrapesJS) ----------
+// ---------- visual page editor (GrapesJS + preset-webpage) ----------
 let gjsEditor = null;
 const GJS_PAGE_TITLES = { index: "صفحه اصلی", about: "درباره ما", gallery: "گالری", contact: "تماس با ما", products: "محصولات" };
+
+function initGjsEditor() {
+  const editor = grapesjs.init({
+    container: "#gjsEditor",
+    height: "100%",
+    storageManager: false,
+    fromElement: false,
+    plugins: ["gjs-preset-webpage"],
+    pluginsOpts: { "gjs-preset-webpage": {} },
+    deviceManager: {
+      devices: [
+        { name: "Desktop", width: "" },
+        { name: "Tablet", width: "768px", widthMedia: "992px" },
+        { name: "Mobile", width: "375px", widthMedia: "575px" },
+      ],
+    },
+    canvas: {
+      styles: [
+        "/style.css",
+        "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap",
+      ],
+    },
+  });
+
+  // extra ready-made blocks
+  editor.BlockManager.add("gjs-heading", { label: "عنوان", category: "پایه", content: '<h2 style="padding:10px 0;">عنوان جدید</h2>' });
+  editor.BlockManager.add("gjs-paragraph", { label: "متن", category: "پایه", content: '<p style="padding:10px 0;">متن دلخواه خود را اینجا بنویسید.</p>' });
+  editor.BlockManager.add("gjs-button", { label: "دکمه", category: "پایه", content: '<a href="#" style="display:inline-block;padding:10px 22px;background:#b76e79;color:#fff;border-radius:8px;text-decoration:none;">دکمه</a>' });
+  editor.BlockManager.add("gjs-section", { label: "بخش خالی", category: "پایه", content: '<div style="padding:30px;min-height:80px;border:1px dashed #ccc;"></div>' });
+  editor.BlockManager.add("gjs-spacer", { label: "فاصله", category: "پایه", content: '<div style="height:40px;"></div>' });
+
+  // free-position toggle command
+  editor.Commands.add("toggle-absolute", {
+    run(ed) {
+      const c = ed.getSelected();
+      if (!c) return;
+      const el = c.getEl();
+      if (!el) return;
+      if (c.getStyle().position === "absolute") {
+        c.addStyle({ position: "", top: "", left: "", margin: "" });
+        return;
+      }
+      const parent = el.offsetParent || el.parentElement;
+      if (parent) {
+        const parentComp = c.parent();
+        if (parentComp && getComputedStyle(parent).position === "static") parentComp.addStyle({ position: "relative" });
+        const rect = el.getBoundingClientRect();
+        const prect = parent.getBoundingClientRect();
+        c.addStyle({ position: "absolute", top: (rect.top - prect.top) + "px", left: (rect.left - prect.left) + "px", margin: 0 });
+      }
+    },
+  });
+  editor.on("component:selected", (c) => {
+    const toolbar = c.get("toolbar") || [];
+    if (!toolbar.find((t) => t.command === "toggle-absolute")) {
+      toolbar.push({ label: "⤢", attributes: { title: "جابجایی آزاد (روشن/خاموش)" }, command: "toggle-absolute" });
+      c.set("toolbar", toolbar);
+    }
+  });
+
+  editor.on("load", () => {
+    const doc = editor.Canvas.getDocument();
+    if (doc && doc.documentElement) doc.documentElement.setAttribute("dir", "rtl");
+  });
+
+  return editor;
+}
 
 document.getElementById("openVisualEditorBtn")?.addEventListener("click", async () => {
   const page = document.getElementById("gjsPage").value;
   document.getElementById("gjsPageLabel").textContent = GJS_PAGE_TITLES[page] || page;
   document.getElementById("gjsOverlay").style.display = "flex";
-  if (!gjsEditor) {
-    gjsEditor = grapesjs.init({
-      container: "#gjsEditor",
-      height: "100%",
-      storageManager: false,
-      fromElement: false,
-      canvas: {
-        styles: [
-          "/style.css",
-          "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap",
-        ],
-      },
-    });
-    gjsEditor.on("load", () => {
-      const doc = gjsEditor.Canvas.getDocument();
-      if (doc && doc.documentElement) doc.documentElement.setAttribute("dir", "rtl");
-    });
-    gjsEditor.on("component:selected", (c) => {
-      const cur = c.getStyle();
-      if (cur.position === "absolute") return;
-      const el = c.getEl();
-      if (!el) return;
-      const parent = el.offsetParent || el.parentElement;
-      if (!parent) return;
-      const rect = el.getBoundingClientRect();
-      const prect = parent.getBoundingClientRect();
-      c.addStyle({ position: "absolute", top: (rect.top - prect.top) + "px", left: (rect.left - prect.left) + "px", margin: 0 });
-    });
-  }
+  if (!gjsEditor) gjsEditor = initGjsEditor();
+
   let html = themeSettingsCache["page_html_" + page] || "";
   let css = themeSettingsCache["page_css_" + page] || "";
   if (!html) {

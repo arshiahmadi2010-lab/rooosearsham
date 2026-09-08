@@ -10,6 +10,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+<link rel="stylesheet" href="https://unpkg.com/grapesjs-preset-webpage/dist/grapesjs-preset-webpage.min.css">
+<style>
+  /* GrapesJS panels must stay LTR internally even though the admin page is RTL, or drag/resize handles land on the wrong side */
+  .gjs-editor, .gjs-pn-panel, .gjs-toolbar, .gjs-resizer-h, .gjs-badge, .gjs-rte-toolbar, .gjs-block-category, .gjs-blocks-c { direction: ltr; }
+  .gjs-pn-btn.gjs-pn-active, .gjs-block:hover { border-color: #b76e79 !important; }
+  #gjsOverlay .gjs-editor { height: 100%; }
+</style>
 </head>
 <body class="admin-body">
 
@@ -266,6 +273,7 @@
 <div id="gjsOverlay" style="display:none; position:fixed; inset:0; background:#fff; z-index:9999; flex-direction:column;">
   <div style="display:flex; gap:10px; align-items:center; padding:10px 16px; border-bottom:1px solid #eee;">
     <strong id="gjsPageLabel"></strong>
+    <span style="color:var(--muted); font-size:12px;">برای جابجایی آزاد یک المنت: انتخابش کن و دکمه ⤢ روی نوار ابزارش را بزن</span>
     <div style="flex:1;"></div>
     <button type="button" class="btn-small secondary" id="gjsResetBtn">بازگشت به پیش‌فرض</button>
     <button type="button" class="btn-primary" id="gjsSaveBtn" style="border:none; cursor:pointer;">ذخیره</button>
@@ -275,6 +283,7 @@
 </div>
 
 <script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-webpage"></script>
 
 <!-- ---------------- PRODUCT MODAL ---------------- -->
 <div class="modal-backdrop" id="productModal">
