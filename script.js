@@ -212,7 +212,7 @@ function productCardHTML(p) {
   const img = p.images && p.images[0] ? p.images[0] : null;
   return `
     <a href="product-detail.html?id=${p.id}" class="product-card link-card" data-cat="${p.category}">
-      <div class="card-thumb" ${img ? `style="background-image:url('${img}'); background-size:cover; background-position:center;"` : ""}></div>
+      <div class="card-thumb">${img ? `<img src="${img}" alt="${p.name}">` : ""}</div>
       <h3>${p.name}</h3>
       <p>${p.description || ""}</p>
       <span class="product-link">${copy("site.product_detail.cta", "مشاهده جزئیات ←")}</span>
@@ -231,7 +231,7 @@ function galleryItemHTML(g) {
     const data = await fetchJSON("/api/products");
     const products = (data && data.products) || [];
     homeGrid.innerHTML = products.length
-      ? products.slice(0, 4).map(productCardHTML).join("")
+      ? products.slice(0, 8).map(productCardHTML).join("")
       : `<p style="grid-column:1/-1; text-align:center; color:var(--muted); padding:30px 0;">${copy("site.empty.no_products_home", "هنوز محصولی اضافه نشده — به‌زودی از پنل ادمین اضافه می‌شود.")}</p>`;
   }
 
