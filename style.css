@@ -971,42 +971,62 @@
   .dashboard-grid{grid-template-columns:1fr;}
 }
 
-/* ---------- Hero centering override ---------- */
+/* ---------- Responsive hero fix ---------- */
 @media (max-width: 640px){
+  /* The slider is decorative/absolute on mobile so it cannot push the hero copy sideways. */
+  .hero{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100svh;
+  }
+  .hero-slider{
+    position:absolute !important;
+    inset:auto 18px 18px 18px !important;
+    width:auto !important;
+    height:220px !important;
+    margin:0 !important;
+    z-index:0 !important;
+    pointer-events:none;
+  }
   .hero > .wrap{
-    width: 100vw !important;
-    max-width: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+    position:relative;
+    width:100%;
+    max-width:1180px;
+    margin:0 auto;
+    padding-left:18px;
+    padding-right:18px;
+    z-index:2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
   }
-  .hero > .wrap > .hero-copy{
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    text-align: center !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+  .hero-copy{
+    width:100%;
+    max-width:620px;
+    margin:0 auto;
+    text-align:center;
   }
-  .hero > .wrap > .hero-copy .lead{
-    width: calc(100% - 28px) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+  .hero-copy .eyebrow,
+  .hero-copy h1,
+  .hero-copy p.lead{
+    margin-left:auto;
+    margin-right:auto;
   }
-  .hero > .wrap > .hero-copy .hero-actions{
-    width: calc(100% - 28px) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    align-items: center !important;
+  .hero-copy .hero-actions{
+    width:100%;
+    justify-content:center;
+    align-items:center;
   }
-  .hero > .wrap > .hero-copy .hero-actions a{
-    box-sizing: border-box !important;
+}
+
+@media (max-width: 390px){
+  .hero > .wrap{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .hero-slider{
+    inset-left:14px !important;
+    inset-right:14px !important;
   }
 }
