@@ -970,3 +970,43 @@
   .product-grid,.product-grid.full{grid-template-columns:1fr;}
   .dashboard-grid{grid-template-columns:1fr;}
 }
+
+/* ---------- Hero centering override ---------- */
+@media (max-width: 640px){
+  .hero > .wrap{
+    width: 100vw !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  .hero > .wrap > .hero-copy{
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .hero > .wrap > .hero-copy .lead{
+    width: calc(100% - 28px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .hero > .wrap > .hero-copy .hero-actions{
+    width: calc(100% - 28px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    align-items: center !important;
+  }
+  .hero > .wrap > .hero-copy .hero-actions a{
+    box-sizing: border-box !important;
+  }
+}
