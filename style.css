@@ -122,22 +122,23 @@
   /* ---------- HERO ---------- */
   .hero{
     position: relative;
-    min-height: 100svh;
+    min-height: 76svh;
     display:flex;
     align-items:center;
-    padding-top: 90px;
+    padding: 92px 0 58px;
     overflow: hidden;
   }
   .hero .wrap{
     position: relative;
     z-index: 2;
     width: 100%;
-    display:flex;
-    justify-content:center;
+    display:grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, .82fr);
     align-items:center;
+    gap: 64px;
   }
-  .hero-copy{ max-width: 620px; text-align:center; }
-  .hero-actions{ justify-content:center; }
+  .hero-copy{ max-width: 560px; text-align:right; margin-inline-start:0; }
+  .hero-actions{ justify-content:flex-start; }
   .eyebrow{
     display:inline-flex;
     align-items:center;
@@ -166,13 +167,13 @@
     display:block;
   }
   .hero p.lead{
-    margin-top: 26px;
+    margin-top: 20px;
     max-width: 460px;
-    font-size: 17px;
+    font-size: 16px;
     color: #3A5568;
   }
   .hero-actions{
-    margin-top: 40px;
+    margin-top: 28px;
     display:flex;
     gap: 18px;
     align-items:center;
@@ -266,13 +267,13 @@
 
   /* ---------- SECTIONS ---------- */
   section{ position: relative; }
-  .section-pad{ padding: 130px 0 110px; }
+  .section-pad{ padding: 82px 0 72px; }
   .section-sage{ background: var(--sage-pale); }
   .section-dark{ background: var(--sage-deep); color: var(--paper); }
 
   .section-head{
     max-width: 620px;
-    margin-bottom: 64px;
+    margin-bottom: 42px;
   }
   .section-head.center{ margin-left:auto; margin-right:auto; text-align:center; }
   .section-head h2{
@@ -294,7 +295,7 @@
   .about-grid{
     display:grid;
     grid-template-columns: .85fr 1.15fr;
-    gap: 70px;
+    gap: 52px;
     align-items:center;
   }
   .about-frame{
@@ -304,20 +305,12 @@
     background: linear-gradient(155deg, var(--sage-pale), var(--sage));
     overflow:hidden;
   }
-  .about-frame::after{
-    content: "تصویر نمونه — کارخانه رز آرشام";
-    position:absolute; inset:auto 0 18px 0;
-    text-align:center;
-    font-size: 12px;
-    color: #0F5F82;
-    opacity:.7;
-  }
   .about-copy p{ margin-bottom: 18px; color: #3A5568; font-size: 15.5px; }
   .about-stats{
     display:flex;
-    gap: 46px;
-    margin-top: 34px;
-    padding-top: 30px;
+    gap: 36px;
+    margin-top: 26px;
+    padding-top: 22px;
     border-top: 1px solid var(--line);
   }
   .about-stats .num{
@@ -338,7 +331,7 @@
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 18px;
-    padding: 30px 26px 26px;
+    padding: 24px 22px 22px;
     transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
   }
   .product-card:hover{
@@ -347,8 +340,8 @@
     border-color: transparent;
   }
   .product-icon{
-    width: 46px; height: 46px;
-    margin-bottom: 22px;
+    width: 42px; height: 42px;
+    margin-bottom: 16px;
   }
   .product-card h3{
     font-size: 17px;
@@ -358,7 +351,7 @@
   .product-card p{
     font-size: 13.5px;
     color: var(--muted);
-    margin-bottom: 20px;
+    margin-bottom: 14px;
   }
   .product-link{
     font-size: 13px;
@@ -430,7 +423,7 @@
   /* contact / footer */
   footer{ background: var(--ink); color: var(--paper); }
   .footer-top{
-    padding: 90px 0 60px;
+    padding: 62px 0 42px;
     display:grid;
     grid-template-columns: 1.3fr 1fr 1fr 1fr;
     gap: 40px;
@@ -901,8 +894,8 @@
 
 /* ---------- managed site images ---------- */
 .managed-site-image{max-width:100%; display:none; object-fit:cover; object-position:center;}
-.managed-hero-image{position:absolute; inset:auto 4% 4% auto; width:42%; height:72%; z-index:0; border-radius:28px; pointer-events:none;}
-.hero-slider{ position:absolute; inset:auto 4% 4% auto; width:42%; height:72%; z-index:0; }
+.managed-hero-image{position:absolute; inset:auto auto 8% 4%; width:38%; height:68%; z-index:0; border-radius:28px; pointer-events:none;}
+.hero-slider{ position:absolute; inset:auto auto 8% 4%; width:38%; height:68%; z-index:0; }
 .hero-slider .hero-slide{ position:absolute; inset:0; width:100%; height:100%; opacity:0; transition: opacity .8s ease; }
 .hero-slider .hero-slide.active{ opacity:1; position:absolute; }
 .hero-slider-dots{ position:absolute; bottom:14px; right:50%; transform:translateX(50%); display:flex; gap:8px; z-index:2; }
@@ -1029,4 +1022,57 @@
     inset-left:14px !important;
     inset-right:14px !important;
   }
+}
+
+
+/* ---------- Compact responsive composition ---------- */
+@media (min-width: 981px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr) minmax(360px,.82fr);}
+  .hero-copy{position:relative; z-index:3;}
+  .hero h1{font-size:clamp(42px,4.8vw,62px);}
+  .hero-bg-blob{width:48vw;height:48vw;}
+}
+
+@media (max-width: 980px){
+  .hero{min-height:68svh;padding:104px 0 54px;}
+  .hero .wrap{display:flex;justify-content:center;align-items:center;gap:0;}
+  .hero-copy{max-width:600px;margin:0 auto;text-align:center;}
+  .hero-actions{justify-content:center;}
+  .hero-slider{left:4%;right:auto;bottom:5%;width:38%;height:48%;}
+  .section-pad{padding:68px 0 58px;}
+}
+
+@media (max-width: 640px){
+  .hero{min-height:auto;padding:94px 0 42px;}
+  .hero .wrap{padding-left:18px;padding-right:18px;}
+  .hero-copy{max-width:430px;}
+  .hero h1{font-size:clamp(32px,9vw,40px);line-height:1.25;}
+  .hero p.lead{font-size:14.5px;line-height:1.9;margin-top:16px;max-width:360px;}
+  .hero-actions{margin-top:22px;}
+  .hero-actions a{width:auto;min-width:190px;}
+  .hero-slider{position:relative !important; inset:auto !important; width:100% !important;height:150px !important;margin:24px 0 0 !important;order:2;opacity:.95;}
+  .hero > .wrap{display:flex;flex-direction:column;}
+  .hero-copy{order:1;}
+  .section-pad{padding:56px 0 48px;}
+  .section-head{margin-bottom:32px;}
+  .section-head h2{font-size:27px;}
+  .section-head p{font-size:14px;margin-top:12px;}
+  .about-grid{gap:30px;}
+  .about-copy p{font-size:14px;margin-bottom:12px;}
+  .about-stats{gap:22px;margin-top:20px;padding-top:18px;}
+  .about-stats .num{font-size:25px;}
+  .product-card{padding:20px 18px;}
+  .process-list{gap:28px 0;}
+  .gallery-grid{gap:10px;}
+  .footer-top{padding:48px 0 32px;}
+  .footer-bottom{padding:18px 0;}
+}
+
+@media (max-width: 390px){
+  .hero{padding-top:88px;padding-bottom:34px;}
+  .hero .wrap{padding-left:14px;padding-right:14px;}
+  .hero h1{font-size:30px;}
+  .hero p.lead{font-size:14px;}
+  .hero-actions a{min-width:180px;}
+  .hero-slider{height:125px !important;}
 }
