@@ -151,24 +151,63 @@ async function isUnlocked(request, env) {
 }
 
 function comingSoonHtml(text) {
-  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>به‌زودی</title><link rel="stylesheet" href="/style.css"><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf7f2}.gate-box{max-width:420px;width:90%;text-align:center;padding:2rem;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08)}.gate-box input{width:100%;padding:.7rem;margin:1rem 0;border:1px solid #ddd;border-radius:8px;font-size:1rem;box-sizing:border-box}.gate-box button{width:100%;padding:.7rem;border:none;border-radius:8px;background:#b76e79;color:#fff;font-size:1rem;cursor:pointer}.gate-err{color:#c0392b;min-height:1.2em;font-size:.9rem}</style></head><body>
-<div class="gate-box">
-<h2>${escapeHtml(text || "به زودی برمی‌گردیم")}</h2>
-<form id="gf"><input type="password" id="gp" placeholder="رمز عبور" autofocus><div class="gate-err" id="ge"></div><button type="submit">ورود</button></form>
-</div>
+  const message = escapeHtml(text || "به‌زودی برمی‌گردیم");
+  return `<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>به‌زودی | رز آرشام</title>
+<style>
+:root{color-scheme:dark;--bg:#071827;--bg2:#0d2b42;--ink:#eef9ff;--muted:#a9c7d8;--accent:#65c7f1;--accent2:#238fc2;--line:rgba(190,231,250,.16)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Tahoma,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+body{min-height:100vh;display:grid;place-items:center;overflow:hidden;position:relative;padding:28px}
+body:before,body:after{content:"";position:absolute;border-radius:50%;filter:blur(4px);pointer-events:none}
+body:before{width:520px;height:520px;right:-190px;top:-210px;background:radial-gradient(circle,rgba(35,143,194,.32),transparent 68%)}
+body:after{width:440px;height:440px;left:-180px;bottom:-190px;background:radial-gradient(circle,rgba(101,199,241,.18),transparent 68%)}
+.shell{width:min(100%,920px);position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:34px}.brand-mark{width:46px;height:46px;border:1px solid rgba(101,199,241,.55);border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(101,199,241,.2),rgba(35,143,194,.08));box-shadow:0 0 35px rgba(35,143,194,.16)}
+.brand-mark:before{content:"";width:17px;height:17px;border:2px solid var(--accent);border-radius:50%;box-shadow:8px 0 0 -5px var(--accent)}.brand-name{font-size:19px;font-weight:700;letter-spacing:-.5px}.brand-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:18px}.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+h1{font-size:clamp(38px,6vw,72px);line-height:1.08;letter-spacing:-2.5px;margin:0 0 20px;font-weight:800}h1 span{color:var(--accent)}.message{font-size:17px;line-height:2;color:var(--muted);max-width:510px;margin:0}
+.card{background:linear-gradient(145deg,rgba(20,57,80,.82),rgba(7,24,39,.9));border:1px solid var(--line);border-radius:28px;padding:34px;box-shadow:0 25px 80px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(14px)}.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}.card-title{font-size:15px;font-weight:700}.lock{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(101,199,241,.12);color:var(--accent);font-size:18px}
+.field{position:relative}.field input{width:100%;height:56px;border:1px solid rgba(169,199,216,.25);border-radius:15px;background:rgba(0,0,0,.16);color:var(--ink);font-size:16px;padding:0 17px 0 50px;outline:none;transition:.2s}.field input::placeholder{color:#7897aa}.field input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(101,199,241,.1)}.field button{position:absolute;left:9px;top:9px;width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:#7897aa;cursor:pointer;font-size:18px}.field button:hover{color:var(--accent)}
+.submit{width:100%;height:54px;margin-top:13px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#062033;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 12px 28px rgba(35,143,194,.2);transition:transform .2s,filter .2s}.submit:hover{filter:brightness(1.08);transform:translateY(-1px)}.submit:disabled{opacity:.65;cursor:wait;transform:none}.error{min-height:22px;color:#ffb5b5;font-size:12px;margin-top:12px;text-align:center}.hint{font-size:11px;color:#7897aa;text-align:center;margin:17px 0 0;line-height:1.8}
+.footer{position:fixed;bottom:18px;right:0;left:0;text-align:center;color:#547589;font-size:11px;z-index:1}
+@media(max-width:720px){body{padding:22px;overflow:auto}.shell{grid-template-columns:1fr;gap:26px}.brand{margin-bottom:28px}h1{font-size:46px;letter-spacing:-1.5px}.message{font-size:15px}.card{padding:25px;border-radius:22px}.footer{position:static;margin-top:22px}.shell-wrap{width:100%;max-width:520px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell-wrap"><main class="shell">
+<section>
+  <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><div class="brand-name">رز آرشام</div><div class="brand-sub">محصولات سلولزی با کیفیت و لطافت</div></div></div>
+  <div class="eyebrow"><i></i> به‌زودی در دسترس است</div>
+  <h1>${message.replace(/\n/g, '<br>')}</h1>
+  <p class="message">ما در حال آماده‌سازی تجربه‌ای تازه برای شما هستیم. به‌زودی با محصولاتی باکیفیت‌تر و حضوری متفاوت برمی‌گردیم.</p>
+</section>
+<section class="card" aria-label="ورود به سایت اصلی">
+  <div class="card-top"><div class="card-title">دسترسی اختصاصی</div><div class="lock" aria-hidden="true">⌁</div></div>
+  <form id="gf" novalidate>
+    <div class="field"><input id="gp" type="password" placeholder="رمز دسترسی" autocomplete="off" aria-label="رمز دسترسی"><button id="toggle" type="button" aria-label="نمایش رمز">◉</button></div>
+    <div class="error" id="ge" role="status" aria-live="polite"></div>
+    <button class="submit" id="submit" type="submit">ورود به سایت اصلی</button>
+  </form>
+  <p class="hint">اگر رمز دسترسی را دارید، آن را وارد کنید.</p>
+</section>
+</main><div class="footer">© رز آرشام</div></div>
 <script>
-document.getElementById('gf').addEventListener('submit', async (e)=>{e.preventDefault();
-const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('gp').value})});
-if(r.ok){location.reload();}else{document.getElementById('ge').textContent='رمز اشتباه است.';}
-});
+const form=document.getElementById('gf'), input=document.getElementById('gp'), error=document.getElementById('ge'), submit=document.getElementById('submit'), toggle=document.getElementById('toggle');
+toggle.addEventListener('click',()=>{const visible=input.type==='text';input.type=visible?'password':'text';toggle.textContent=visible?'◉':'◌';toggle.setAttribute('aria-label',visible?'نمایش رمز':'پنهان کردن رمز');input.focus()});
+form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';if(!input.value.trim()){error.textContent='رمز دسترسی را وارد کنید.';input.focus();return}submit.disabled=true;submit.textContent='در حال بررسی...';try{const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:input.value})});if(r.ok){location.href='/';return}error.textContent='رمز دسترسی اشتباه است.';input.select()}catch(_){error.textContent='ارتباط با سرور برقرار نشد. دوباره تلاش کنید.'}finally{submit.disabled=false;submit.textContent='ورود به سایت اصلی'}});
 </script>
 </body></html>`;
 }
-
 async function postUnlock(request, env) {
   const body = await readJson(request);
   const s = await getGateSettings(env);
-  if (!body || !body.password || body.password !== (s.comingsoon_password || "")) {
+  if (!body || typeof body.password !== "string" || !s.comingsoon_password || body.password !== s.comingsoon_password) {
     return jsonResponse({ error: "رمز اشتباه است." }, 401);
   }
   const token = await createSessionToken({ gate: true }, env.SESSION_SECRET, 60 * 60 * 24 * 30);
