@@ -131,8 +131,10 @@
   .hero .wrap{
     position: relative;
     z-index: 2;
+    width: 100%;
     display:flex;
     justify-content:center;
+    align-items:center;
   }
   .hero-copy{ max-width: 620px; text-align:center; }
   .hero-actions{ justify-content:center; }
