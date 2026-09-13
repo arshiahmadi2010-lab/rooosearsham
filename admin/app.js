@@ -1,4 +1,4 @@
-const API = ""; // same-origin — Pages Functions live at /api/*
+const API = ""; // same-origin — Cloudflare Worker live at /api/*
 
 // ---------- small helpers ----------
 function toast(msg) {

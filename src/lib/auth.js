@@ -1,6 +1,6 @@
 // Shared auth helpers for the admin panel.
 // Uses the Web Crypto API (SubtleCrypto), which is available natively
-// in the Cloudflare Workers / Pages Functions runtime — no extra deps.
+// in the Cloudflare Workers / Cloudflare Worker runtime — no extra deps.
 
 const encoder = new TextEncoder();
 

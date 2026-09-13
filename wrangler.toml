@@ -14,6 +14,6 @@ database_id = "15817063-2461-46b0-aa53-41f7de6a64ec"
 # SESSION_SECRET is set as a Secret in the project's dashboard settings
 # (Settings → Variables and Secrets), not here.
 #
-# No R2 bucket needed — uploaded images are stored directly in D1
+# Uploaded images are stored directly in D1
 # (the "media" table) so the whole project stays on Cloudflare's
 # genuinely card-free free tier.

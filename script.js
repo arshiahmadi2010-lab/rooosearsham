@@ -1,7 +1,9 @@
 const navEl = document.getElementById('siteNav');
-  window.addEventListener('scroll', () => {
-    navEl.classList.toggle('scrolled', window.scrollY > 40);
-  });
+  if (navEl) {
+    const syncNav = () => navEl.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', syncNav, { passive: true });
+    syncNav();
+  }
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduceMotion){
@@ -118,7 +120,7 @@ function initHeroSlider() {
       dots.forEach((d, idx) => d.classList.toggle("active", idx === i));
     }
     dots.forEach(d => d.addEventListener("click", () => show(Number(d.dataset.i))));
-    setInterval(() => show((i + 1) % slides.length), 5000);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => show((i + 1) % slides.length), 6000);
   }
 }
 
@@ -208,19 +210,29 @@ const settingsReady = (async function loadSettings() {
   return s;
 })();
 
+function escapeHTML(value = "") {
+  return String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
+}
+
 function productCardHTML(p) {
   const img = p.images && p.images[0] ? p.images[0] : null;
+  const name = escapeHTML(p.name || "محصول رز آرشام");
+  const description = escapeHTML(p.description || "");
+  const category = escapeHTML(p.category || "");
+  const href = `product-detail.html?id=${encodeURIComponent(p.id)}`;
   return `
-    <a href="product-detail.html?id=${p.id}" class="product-card link-card" data-cat="${p.category}">
-      <div class="card-thumb" ${img ? `style="background-image:url('${img}'); background-size:cover; background-position:center;"` : ""}></div>
-      <h3>${p.name}</h3>
-      <p>${p.description || ""}</p>
-      <span class="product-link">${copy("site.product_detail.cta", "مشاهده جزئیات ←")}</span>
+    <a href="${href}" class="product-card link-card" data-cat="${category}" aria-label="مشاهده ${name}">
+      <div class="card-thumb">${img ? `<img src="${escapeHTML(img)}" alt="${name}" loading="lazy" decoding="async">` : `<div class="card-thumb-empty" aria-hidden="true"><span>رز آرشام</span></div>`}</div>
+      <h3>${name}</h3>
+      <p>${description}</p>
+      <span class="product-link">${escapeHTML(copy("site.product_detail.cta", "مشاهده جزئیات ←"))}</span>
     </a>`;
 }
 
 function galleryItemHTML(g) {
-  return `<div class="g-item" data-cat="${g.category || ""}" style="background-image:url('${g.image_url}'); background-size:cover; background-position:center;"></div>`;
+  const url = escapeHTML(g.image_url || "");
+  const label = escapeHTML(categoryLabels[g.category] || g.category || "گالری");
+  return `<div class="g-item" data-cat="${escapeHTML(g.category || "")}" data-label="${label}" style="background-image:url('${url}'); background-size:cover; background-position:center;" role="img" aria-label="${label}"></div>`;
 }
 
 // ---------- homepage: top products + gallery preview ----------
@@ -231,7 +243,7 @@ function galleryItemHTML(g) {
     const data = await fetchJSON("/api/products");
     const products = (data && data.products) || [];
     homeGrid.innerHTML = products.length
-      ? products.slice(0, 4).map(productCardHTML).join("")
+      ? products.slice(0, 8).map(productCardHTML).join("")
       : `<p style="grid-column:1/-1; text-align:center; color:var(--muted); padding:30px 0;">${copy("site.empty.no_products_home", "هنوز محصولی اضافه نشده — به‌زودی از پنل ادمین اضافه می‌شود.")}</p>`;
   }
 
@@ -242,12 +254,38 @@ function galleryItemHTML(g) {
     if (images.length) {
       homeGallery.innerHTML = images.slice(0, 6).map((g, i) => {
         const cls = ["g1", "g2", "g3", "g4", "g5", "g6"][i % 6];
-        return `<div class="g-item ${cls}" style="background-image:url('${g.image_url}'); background-size:cover; background-position:center;"></div>`;
+        return `<div class="g-item ${cls}" data-label="${escapeHTML(categoryLabels[g.category] || g.category || "گالری")}" style="background-image:url('${escapeHTML(g.image_url || "")}'); background-size:cover; background-position:center;"></div>`;
       }).join("");
     } else {
       homeGallery.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--muted); padding:30px 0;">${copy("site.empty.no_images_home", "هنوز تصویری اضافه نشده است.")}</p>`;
     }
   }
+})();
+
+// ---------- homepage product slider controls ----------
+(function initHomeProductSlider(){
+  const slider = document.getElementById("homeProductGrid");
+  const prev = document.getElementById("homeProductPrev");
+  const next = document.getElementById("homeProductNext");
+  const count = document.getElementById("homeProductCount");
+  if (!slider || !prev || !next || !count) return;
+
+  const update = () => {
+    const cards = [...slider.querySelectorAll(".product-card")];
+    const total = cards.length;
+    if (!total) { count.textContent = "00 / 00"; return; }
+    const center = slider.scrollLeft + slider.clientWidth / 2;
+    let closest = 0, distance = Infinity;
+    cards.forEach((card, i) => { const c = card.offsetLeft + card.offsetWidth / 2; const d = Math.abs(c-center); if(d<distance){distance=d;closest=i;} });
+    count.textContent = `${String(closest+1).padStart(2,"0")} / ${String(total).padStart(2,"0")}`;
+    prev.disabled = slider.scrollLeft <= 2;
+    next.disabled = slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 2;
+  };
+  const step = dir => slider.scrollBy({left:dir*Math.max(300,slider.clientWidth*.78),behavior:"smooth"});
+  prev.addEventListener("click",()=>step(-1)); next.addEventListener("click",()=>step(1));
+  slider.addEventListener("scroll",update,{passive:true}); window.addEventListener("resize",update,{passive:true});
+  new MutationObserver(update).observe(slider,{childList:true});
+  update();
 })();
 
 // ---------- products.html: full catalog ----------
@@ -297,7 +335,7 @@ function galleryItemHTML(g) {
 
   const media = document.getElementById("detailMedia");
   if (p.images && p.images[0]) {
-    media.style.backgroundImage = `url('${p.images[0]}')`;
+    media.style.backgroundImage = `url("${String(p.images[0]).replace(/(["\\])/g, "\\$1")}")`;
     media.style.backgroundSize = "cover";
     media.style.backgroundPosition = "center";
   }
@@ -305,7 +343,7 @@ function galleryItemHTML(g) {
   const featuresEl = document.getElementById("detailFeatures");
   if (p.features && p.features.length) {
     featuresEl.innerHTML = p.features.map((f) => `
-      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9.5L7 13.5L15 4.5" stroke="#3E5636" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${f}</li>
+      <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9.5L7 13.5L15 4.5" stroke="#3E5636" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${escapeHTML(f)}</li>
     `).join("");
   }
 
