@@ -303,9 +303,13 @@ function initHomeProductSlider(){
   };
 
   const render = (animate = true) => {
+    const card = slider.querySelector(".product-card");
     const step = getStep();
-    slider.style.transition = animate && !reduceMotion ? "transform 700ms cubic-bezier(.22,.8,.22,1)" : "none";
-    slider.style.transform = `translate3d(${-index * step}px,0,0)`;
+    const cardWidth = card ? card.getBoundingClientRect().width : 0;
+    const viewportWidth = viewport.getBoundingClientRect().width;
+    const centerOffset = Math.max(0, (viewportWidth - cardWidth) / 2);
+    slider.style.transition = animate && !reduceMotion ? "transform 450ms cubic-bezier(.22,.8,.22,1)" : "none";
+    slider.style.transform = `translate3d(${centerOffset - (index * step)}px,0,0)`;
     const logical = ((index % total) + total) % total;
     count.textContent = `${String(logical + 1).padStart(2,"0")} / ${String(total).padStart(2,"0")}`;
   };
@@ -334,7 +338,7 @@ function initHomeProductSlider(){
     if (reduceMotion || total < 2) return;
     timer = setInterval(() => {
       if (!document.hidden && !isPointerDown) go(1);
-    }, 3800);
+    }, 1900);
   };
 
   prev.addEventListener("click", () => { stopAuto(); go(-1); startAuto(); });
