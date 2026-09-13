@@ -245,6 +245,7 @@ function galleryItemHTML(g) {
     homeGrid.innerHTML = products.length
       ? products.slice(0, 8).map(productCardHTML).join("")
       : `<p style="grid-column:1/-1; text-align:center; color:var(--muted); padding:30px 0;">${copy("site.empty.no_products_home", "هنوز محصولی اضافه نشده — به‌زودی از پنل ادمین اضافه می‌شود.")}</p>`;
+    initHomeProductSlider();
   }
 
   const homeGallery = document.getElementById("homeGalleryGrid");
@@ -263,30 +264,109 @@ function galleryItemHTML(g) {
 })();
 
 // ---------- homepage product slider controls ----------
-(function initHomeProductSlider(){
+function initHomeProductSlider(){
+  const viewport = document.getElementById("homeProductViewport");
   const slider = document.getElementById("homeProductGrid");
   const prev = document.getElementById("homeProductPrev");
   const next = document.getElementById("homeProductNext");
   const count = document.getElementById("homeProductCount");
-  if (!slider || !prev || !next || !count) return;
+  if (!viewport || !slider || !prev || !next || !count) return;
 
-  const update = () => {
-    const cards = [...slider.querySelectorAll(".product-card")];
-    const total = cards.length;
-    if (!total) { count.textContent = "00 / 00"; return; }
-    const center = slider.scrollLeft + slider.clientWidth / 2;
-    let closest = 0, distance = Infinity;
-    cards.forEach((card, i) => { const c = card.offsetLeft + card.offsetWidth / 2; const d = Math.abs(c-center); if(d<distance){distance=d;closest=i;} });
-    count.textContent = `${String(closest+1).padStart(2,"0")} / ${String(total).padStart(2,"0")}`;
-    prev.disabled = slider.scrollLeft <= 2;
-    next.disabled = slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 2;
+  if (slider.dataset.sliderReady === "1") return;
+  const originalCards = [...slider.querySelectorAll(".product-card")];
+  if (!originalCards.length || originalCards[0].tagName === "P") {
+    count.textContent = "00 / 00";
+    prev.style.display = "none";
+    next.style.display = "none";
+    return;
+  }
+
+  slider.dataset.sliderReady = "1";
+  const total = originalCards.length;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let index = 0;
+  let timer = null;
+  let isPointerDown = false;
+  let startX = 0;
+  let startY = 0;
+  let moved = false;
+
+  // Duplicate the first set so the carousel can keep moving without exposing an empty edge.
+  originalCards.forEach(card => slider.appendChild(card.cloneNode(true)));
+
+  const getStep = () => {
+    const card = slider.querySelector(".product-card");
+    if (!card) return 0;
+    const styles = getComputedStyle(slider);
+    const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
+    return card.getBoundingClientRect().width + gap;
   };
-  const step = dir => slider.scrollBy({left:dir*Math.max(300,slider.clientWidth*.78),behavior:"smooth"});
-  prev.addEventListener("click",()=>step(-1)); next.addEventListener("click",()=>step(1));
-  slider.addEventListener("scroll",update,{passive:true}); window.addEventListener("resize",update,{passive:true});
-  new MutationObserver(update).observe(slider,{childList:true});
-  update();
-})();
+
+  const render = (animate = true) => {
+    const step = getStep();
+    slider.style.transition = animate && !reduceMotion ? "transform 700ms cubic-bezier(.22,.8,.22,1)" : "none";
+    slider.style.transform = `translate3d(${-index * step}px,0,0)`;
+    const logical = ((index % total) + total) % total;
+    count.textContent = `${String(logical + 1).padStart(2,"0")} / ${String(total).padStart(2,"0")}`;
+  };
+
+  const go = (delta, animate = true) => {
+    index += delta;
+    render(animate);
+  };
+
+  slider.addEventListener("transitionend", () => {
+    if (index >= total) {
+      index -= total;
+      render(false);
+    }
+    if (index < 0) {
+      index += total;
+      render(false);
+    }
+  });
+
+  const stopAuto = () => {
+    if (timer) { clearInterval(timer); timer = null; }
+  };
+  const startAuto = () => {
+    stopAuto();
+    if (reduceMotion || total < 2) return;
+    timer = setInterval(() => {
+      if (!document.hidden && !isPointerDown) go(1);
+    }, 3800);
+  };
+
+  prev.addEventListener("click", () => { stopAuto(); go(-1); startAuto(); });
+  next.addEventListener("click", () => { stopAuto(); go(1); startAuto(); });
+
+  viewport.addEventListener("mouseenter", stopAuto);
+  viewport.addEventListener("mouseleave", startAuto);
+  viewport.addEventListener("focusin", stopAuto);
+  viewport.addEventListener("focusout", startAuto);
+
+  viewport.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    isPointerDown = true; moved = false; startX = e.clientX; startY = e.clientY; stopAuto();
+  });
+  viewport.addEventListener("pointermove", e => {
+    if (!isPointerDown) return;
+    if (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8) moved = true;
+  });
+  viewport.addEventListener("pointerup", e => {
+    if (!isPointerDown) return;
+    const dx = e.clientX - startX;
+    isPointerDown = false;
+    if (moved && Math.abs(dx) > 45) go(dx < 0 ? 1 : -1);
+    startAuto();
+  });
+  viewport.addEventListener("pointercancel", () => { isPointerDown = false; startAuto(); });
+
+  window.addEventListener("resize", () => render(false), {passive:true});
+  document.addEventListener("visibilitychange", () => document.hidden ? stopAuto() : startAuto());
+  render(false);
+  startAuto();
+}
 
 // ---------- products.html: full catalog ----------
 (async function loadFullProducts() {

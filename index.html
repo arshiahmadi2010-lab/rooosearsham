@@ -30,14 +30,15 @@
 </div>
 </header>
 <section class="hero" id="hero">
+<div class="wrap hero-layout">
+<div class="hero-media">
 <div class="hero-slider" id="heroSlider">
 <img class="managed-site-image managed-hero-image hero-slide" data-media="home.hero" alt="" aria-hidden="true">
 <img class="managed-site-image managed-hero-image hero-slide" data-media="home.hero_slide_2" alt="" aria-hidden="true">
 <img class="managed-site-image managed-hero-image hero-slide" data-media="home.hero_slide_3" alt="" aria-hidden="true">
 <div class="hero-slider-dots" id="heroSliderDots"></div>
 </div>
-<div class="hero-bg-blob"></div>
-<div class="wrap">
+</div>
 <div class="hero-copy">
 <span class="eyebrow">تولیدکننده محصولات سلولزی</span>
 <h1 id="heroTitle"><span data-setting="home.hero_title">لطافتی که</span><strong data-setting="home.hero_title_emphasis">حس می‌شود.</strong></h1>
@@ -50,7 +51,6 @@
 <a class="btn-ghost" data-setting="home.hero_about_cta" href="about.html">داستان ما را بخوانید</a>
 </div>
 </div>
-
 </div>
 <div class="scroll-cue"><span>پیمایش</span><span class="line"></span></div>
 </section>
@@ -80,7 +80,8 @@
 <p data-setting="home.products_description" style="margin-inline:auto;">هر خط تولید رز آرشام برای یک نیاز روزمره طراحی شده — بدون افراط، با همان کیفیتی که انتظار دارید.</p>
 </div>
 <!-- این بخش بعداً از پنل ادمین و جدول محصولات (D1) پر می‌شود -->
-<div class="product-slider reveal" id="homeProductGrid">
+<div class="product-slider-viewport reveal" id="homeProductViewport">
+<div class="product-slider" id="homeProductGrid">
 <div class="product-card">
 <svg class="product-icon" fill="none" viewbox="0 0 46 46"><rect height="30" rx="3" stroke="#1684B8" stroke-width="1.3" width="26" x="10" y="8"></rect><path d="M15 18H31M15 24H31M15 30H24" stroke="#0F5F82" stroke-linecap="round" stroke-width="1.2"></path></svg>
 <h3>دستمال کاغذی صورت</h3>
@@ -104,6 +105,7 @@
 <h3>دستمال سفره</h3>
 <p>طرح‌های ساده و شیک، مناسب پذیرایی.</p>
 <a class="product-link" href="product-detail.html">مشاهده جزئیات ←</a>
+</div>
 </div>
 </div>
 <div class="product-slider-nav" aria-label="کنترل محصولات">
