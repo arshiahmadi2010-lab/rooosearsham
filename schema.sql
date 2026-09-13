@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS products (
   category TEXT NOT NULL,          -- facial | toilet | towel | napkin
   description TEXT,
   features_json TEXT DEFAULT '[]', -- JSON array of short feature strings
-  images_json TEXT DEFAULT '[]',   -- JSON array of R2 image URLs
+  images_json TEXT DEFAULT '[]',   -- JSON array of image URLs
   sort_order INTEGER DEFAULT 0,
   active INTEGER DEFAULT 1,
   created_at TEXT DEFAULT (datetime('now'))
