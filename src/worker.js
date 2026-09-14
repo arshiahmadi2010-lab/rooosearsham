@@ -393,6 +393,24 @@ async function adminUpload(request, env) {
   return jsonResponse({ ok: true, url: `/api/media/${id}`, id }, 201);
 }
 
+async function adminDashboard(env) {
+  const queries = await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS c, COALESCE(SUM(active),0) AS active FROM products").first(),
+    env.DB.prepare("SELECT COUNT(*) AS c FROM gallery_images").first(),
+    env.DB.prepare("SELECT COUNT(*) AS c FROM media").first(),
+    env.DB.prepare("SELECT COUNT(*) AS c FROM settings").first(),
+    env.DB.prepare("SELECT COUNT(*) AS c FROM site_media WHERE active = 1").first(),
+  ]);
+  const [p,g,m,s,sm] = queries;
+  const items = [
+    {label:"اتصال دیتابیس D1", ok:true, detail:"متصل و پاسخ‌گو"},
+    {label:"محصولات فعال", ok:Number(p?.active||0) > 0, detail:`${Number(p?.active||0)} محصول فعال`},
+    {label:"تصاویر سایت", ok:Number(sm?.c||0) > 0, detail:`${Number(sm?.c||0)} جایگاه فعال`},
+    {label:"تنظیمات محتوا", ok:Number(s?.c||0) > 0, detail:`${Number(s?.c||0)} مقدار ذخیره‌شده`},
+  ];
+  return jsonResponse({counts:{products:Number(p?.c||0),activeProducts:Number(p?.active||0),gallery:Number(g?.c||0),media:Number(m?.c||0),settings:Number(s?.c||0),siteMedia:Number(sm?.c||0)},health:{ok:items.every(x=>x.ok),items}});
+}
+
 async function adminGetSettings(env) {
   return getSettings(null, env);
 }
@@ -508,6 +526,7 @@ async function route(request, env, pathname, method) {
         if (!session) return jsonResponse({ error: "احراز هویت نشده — لطفاً دوباره وارد شوید." }, 401);
 
         if (pathname === "/api/admin/me" && method === "GET") return adminMe(session);
+        if (pathname === "/api/admin/dashboard" && method === "GET") return adminDashboard(env);
         if (pathname === "/api/admin/change-password" && method === "POST") return adminChangePassword(request, env, session);
 
         if (pathname === "/api/admin/products" && method === "GET") return adminListProducts(env);

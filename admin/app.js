@@ -69,6 +69,7 @@ function showDashboard() {
   loadSettings();
   loadTheme();
   loadCategories();
+  initProAdmin();
 }
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -100,6 +101,67 @@ document.getElementById("adminNav").addEventListener("click", (e) => {
   const panel = btn.dataset.panel;
   document.querySelectorAll(".admin-panel").forEach((p) => p.classList.toggle("active", p.dataset.panel === panel));
 });
+
+
+// ==================== PRO ADMIN UX ====================
+const PANEL_TITLES = {dashboard:"داشبورد",products:"محصولات",gallery:"گالری تصاویر","site-media":"تصاویر سایت",settings:"متن‌های سایت",appearance:"ظاهر و تم سایت",advanced:"تنظیمات پیشرفته",account:"حساب کاربری"};
+const ACTIVITY_KEY = "rosearsham_admin_activity_v1";
+let lastLoadedAt = null;
+function addActivity(text, type="edit") {
+  try {
+    const list = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]");
+    list.unshift({text, type, at:new Date().toISOString()});
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(list.slice(0,12)));
+  } catch {}
+  renderActivity();
+}
+function relativeTime(iso){
+  const d=Date.now()-new Date(iso).getTime(), m=Math.floor(d/60000);
+  if(m<1) return "همین الان"; if(m<60) return `${m} دقیقه پیش`; const h=Math.floor(m/60); if(h<24) return `${h} ساعت پیش`; return `${Math.floor(h/24)} روز پیش`;
+}
+function renderActivity(){
+  const box=document.getElementById("activityList"); if(!box) return;
+  let list=[]; try{list=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||"[]")}catch{}
+  box.innerHTML=list.length?list.map(x=>`<div class="activity-item"><i class="activity-dot ${escapeAttr(x.type)}"></i><div><strong>${escapeHtml(x.text)}</strong><small>${relativeTime(x.at)}</small></div></div>`).join(""):`<div class="empty-state">هنوز فعالیتی در این نشست ثبت نشده.</div>`;
+}
+async function loadDashboardStats(){
+  try{
+    const d=await api("/api/admin/dashboard");
+    document.getElementById("statProducts").textContent=d.counts.products;
+    document.getElementById("statGallery").textContent=d.counts.gallery;
+    document.getElementById("statMedia").textContent=d.counts.media;
+    document.getElementById("statSettings").textContent=d.counts.settings;
+    document.getElementById("statProductsMeta").textContent=`${d.counts.activeProducts} محصول فعال`;
+    document.getElementById("statGalleryMeta").textContent=`${d.counts.gallery} تصویر قابل نمایش`;
+    const badge=document.getElementById("healthBadge"); badge.textContent=d.health.ok?"همه‌چیز سالم":"نیاز به بررسی"; badge.className="health-badge "+(d.health.ok?"ok":"warn");
+    document.getElementById("healthList").innerHTML=d.health.items.map(i=>`<div class="health-row"><span><i class="health-icon ${i.ok?'ok':'warn'}">${i.ok?'✓':'!'}</i>${escapeHtml(i.label)}</span><small>${escapeHtml(i.detail)}</small></div>`).join("");
+    lastLoadedAt=new Date(); updateSyncLabel();
+  }catch(err){ const b=document.getElementById("healthBadge"); if(b){b.textContent="خطا در بررسی";b.className="health-badge warn"} }
+}
+function updateSyncLabel(){ const el=document.getElementById("adminLastSync"); if(el&&lastLoadedAt) el.textContent=`آخرین همگام‌سازی: ${lastLoadedAt.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})}`; }
+function refreshCurrentData(){
+  loadDashboardStats(); loadProducts(); loadGallery(); loadSiteMedia(); loadSettings(); loadTheme(); loadCategories();
+  toast("اطلاعات پنل به‌روزرسانی شد.");
+}
+function openCommandPalette(){ const b=document.getElementById("commandBackdrop"),i=document.getElementById("commandInput"); b.classList.add("show"); b.setAttribute("aria-hidden","false"); i.value=""; renderCommands(""); setTimeout(()=>i.focus(),20); }
+function closeCommandPalette(){ const b=document.getElementById("commandBackdrop"); b.classList.remove("show"); b.setAttribute("aria-hidden","true"); }
+const COMMANDS=[
+  ["dashboard","داشبورد","نمای کلی و سلامت سیستم","D"],["products","محصولات","افزودن و مدیریت محصولات","P"],["gallery","گالری تصاویر","مدیریت گالری","G"],["site-media","تصاویر سایت","بنرها و تصاویر ثابت","M"],["settings","متن‌های سایت","ویرایش متن‌ها","S"],["appearance","ظاهر و تم سایت","رنگ و فونت","A"],["advanced","تنظیمات پیشرفته","نقشه، سئو، CSS و پشتیبان‌گیری","X"],["account","حساب کاربری","تغییر رمز عبور","U"]
+];
+function renderCommands(q){const box=document.getElementById("commandResults"); if(!box)return; const n=q.trim().toLowerCase(); const rows=COMMANDS.filter(x=>!n||x[1].toLowerCase().includes(n)||x[2].toLowerCase().includes(n)).map((x,i)=>`<button class="command-item ${i===0?'selected':''}" data-command-panel="${x[0]}"><span class="cmd-key">${x[3]}</span><span><b>${x[1]}</b><small>${x[2]}</small></span><em>↵</em></button>`).join(""); box.innerHTML=rows||`<div class="empty-state">نتیجه‌ای پیدا نشد.</div>`; box.querySelectorAll("[data-command-panel]").forEach(btn=>btn.addEventListener("click",()=>{document.querySelector(`button[data-panel="${btn.dataset.commandPanel}"]`)?.click();closeCommandPalette();})); }
+function initProAdmin(){
+  renderActivity();
+  document.getElementById("commandBtn")?.addEventListener("click",openCommandPalette);
+  document.getElementById("refreshBtn")?.addEventListener("click",refreshCurrentData);
+  document.getElementById("clearActivityBtn")?.addEventListener("click",()=>{localStorage.removeItem(ACTIVITY_KEY);renderActivity();toast("تاریخچه فعالیت این نشست پاک شد.");});
+  document.getElementById("commandBackdrop")?.addEventListener("click",e=>{if(e.target.id==="commandBackdrop")closeCommandPalette()});
+  document.getElementById("commandInput")?.addEventListener("input",e=>renderCommands(e.target.value));
+  document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette()} if(e.key==="Escape")closeCommandPalette();});
+  document.querySelectorAll(".shortcut[data-go]").forEach(b=>b.addEventListener("click",()=>document.querySelector(`button[data-panel="${b.dataset.go}"]`)?.click()));
+  ["p","g","s","a"].forEach(k=>document.addEventListener("keydown",e=>{if(e.target.matches("input,textarea,select"))return;if(e.key.toLowerCase()===k){const panel={p:"products",g:"gallery",s:"settings",a:"appearance"}[k];document.querySelector(`button[data-panel="${panel}"]`)?.click();}}));
+  document.querySelectorAll("#adminNav button[data-panel]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("adminPageTitle").textContent=PANEL_TITLES[btn.dataset.panel]||btn.textContent.trim();}));
+  loadDashboardStats();
+}
 
 // ==================== PRODUCTS ====================
 const productModal = document.getElementById("productModal");
@@ -142,6 +204,12 @@ document.getElementById("productImageInput").addEventListener("change", async (e
   } catch (err) { toast(err.message); }
 });
 
+const PRODUCT_DRAFT_KEY = "rosearsham_product_draft_v1";
+function saveProductDraft(){
+  try { localStorage.setItem(PRODUCT_DRAFT_KEY, JSON.stringify({name:document.getElementById("productName").value,category:document.getElementById("productCategory").value,description:document.getElementById("productDesc").value,sort_order:document.getElementById("productSort").value,active:document.getElementById("productActive").checked,images:currentProductImages,features:currentProductFeatures,at:new Date().toISOString()})); } catch {}
+}
+["productName","productCategory","productDesc","productSort","productActive"].forEach(id=>document.getElementById(id)?.addEventListener("input",saveProductDraft));
+
 productForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const id = document.getElementById("productId").value;
@@ -161,7 +229,9 @@ productForm.addEventListener("submit", async (e) => {
       await api("/api/admin/products", { method: "POST", body: JSON.stringify(payload) });
     }
     closeProductModal();
+    localStorage.removeItem(PRODUCT_DRAFT_KEY);
     toast("محصول ذخیره شد.");
+    addActivity(id ? "محصول ویرایش شد" : "محصول جدید ایجاد شد", "product");
     loadProducts();
   } catch (err) { toast(err.message); }
 });
@@ -183,6 +253,7 @@ async function loadProducts() {
         <td>
           <div class="row-actions">
             <button class="edit" data-edit="${p.id}">ویرایش</button>
+            <button data-dup="${p.id}">کپی</button>
             <button data-del="${p.id}">حذف</button>
           </div>
         </td>
@@ -190,11 +261,20 @@ async function loadProducts() {
 
     body.querySelectorAll("[data-edit]").forEach((btn) =>
       btn.addEventListener("click", () => openProductModal(products.find((p) => p.id == btn.dataset.edit))));
+    body.querySelectorAll("[data-dup]").forEach((btn) => btn.addEventListener("click", async () => {
+        const p = products.find(x => x.id == btn.dataset.dup);
+        if (!p) return;
+        try {
+          await api("/api/admin/products", { method: "POST", body: JSON.stringify({name: `${p.name} - کپی`, category:p.category, description:p.description, images:p.images||[], sort_order:Number(p.sort_order||0)+1, features:p.features||[], active:0}) });
+          toast("یک کپی از محصول ساخته شد."); addActivity("یک محصول کپی شد", "product"); loadProducts();
+        } catch(err){ toast(err.message); }
+      }));
     body.querySelectorAll("[data-del]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         if (!confirm("این محصول حذف شود؟")) return;
         await api(`/api/admin/products/${btn.dataset.del}`, { method: "DELETE" });
         toast("محصول حذف شد.");
+        addActivity("یک محصول حذف شد", "delete");
         loadProducts();
       }));
   } catch (err) { toast(err.message); }
@@ -409,6 +489,7 @@ document.getElementById("saveSettingsBtn").addEventListener("click", async () =>
   try {
     await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
     toast("همه متن‌ها ذخیره شد.");
+    addActivity("متن‌های سایت به‌روزرسانی شد", "text");
   } catch (err) { toast(err.message); }
 });
 
@@ -465,6 +546,7 @@ document.getElementById("saveThemeBtn").addEventListener("click", async () => {
     await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
     themeSettingsCache = { ...themeSettingsCache, ...payload };
     toast("تغییرات ظاهری ذخیره شد.");
+    addActivity("ظاهر و تم سایت تغییر کرد", "theme");
   } catch (err) { toast(err.message); }
 });
 
@@ -579,6 +661,7 @@ document.getElementById("saveCustomCssBtn").addEventListener("click", async () =
     await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) });
     themeSettingsCache["theme.custom_css"] = payload["theme.custom_css"];
     toast("CSS اختصاصی ذخیره شد.");
+    addActivity("CSS اختصاصی ذخیره شد", "theme");
   } catch (err) { toast(err.message); }
 });
 
@@ -745,3 +828,64 @@ document.getElementById("saveSectionOrderBtn")?.addEventListener("click", async 
     toast("چیدمان صفحه اصلی ذخیره شد.");
   } catch (err) { toast(err.message); }
 });
+
+
+// ==================== PRO+ SMART CONTROL CENTER ====================
+(function initProPlus(){
+  const body=document.body;
+  const THEME_KEY="rosearsham_admin_dark_v1";
+  const FOCUS_KEY="rosearsham_admin_focus_v1";
+  const draftKey=typeof PRODUCT_DRAFT_KEY!=="undefined"?PRODUCT_DRAFT_KEY:"rosearsham_product_draft_v1";
+  function applyPrefs(){
+    body.classList.toggle("dark-admin",localStorage.getItem(THEME_KEY)==="1");
+    body.classList.toggle("focus-mode",localStorage.getItem(FOCUS_KEY)==="1");
+  }
+  applyPrefs();
+  document.getElementById("themeToggleBtn")?.addEventListener("click",()=>{localStorage.setItem(THEME_KEY,body.classList.contains("dark-admin")?"0":"1");applyPrefs();toast(body.classList.contains("dark-admin")?"حالت شب فعال شد":"حالت روز فعال شد");addActivity("حالت نمایش پنل تغییر کرد","theme")});
+  document.getElementById("focusToggleBtn")?.addEventListener("click",()=>{localStorage.setItem(FOCUS_KEY,body.classList.contains("focus-mode")?"0":"1");applyPrefs();});
+  document.getElementById("focusDashboardBtn")?.addEventListener("click",()=>document.getElementById("focusToggleBtn")?.click());
+  document.getElementById("darkDashboardBtn")?.addEventListener("click",()=>document.getElementById("themeToggleBtn")?.click());
+  document.getElementById("clearDraftsBtn")?.addEventListener("click",()=>{localStorage.removeItem(draftKey);toast("پیش‌نویس‌های محلی پاک شدند.");});
+  document.getElementById("exportDashboardBtn")?.addEventListener("click",async()=>{
+    try{
+      const [d,p,g,m,c]=await Promise.all([api("/api/admin/dashboard"),api("/api/admin/products"),api("/api/admin/gallery"),api("/api/admin/site-media"),api("/api/admin/categories")]);
+      const payload={exported_at:new Date().toISOString(),dashboard:d,products:p.products||[],gallery:g.gallery||[],site_media:m.media||[],categories:c.categories||[]};
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`rose-arsham-admin-report-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); toast("گزارش مدیریتی آماده شد."); addActivity("گزارش مدیریتی خروجی گرفته شد","edit");
+    }catch(e){toast(e.message)}
+  });
+
+  // Global search across the main content collections, with debounce and keyboard shortcut.
+  const input=document.getElementById("globalSearch"); if(!input)return;
+  const resultBox=document.createElement("div"); resultBox.className="global-search-results"; resultBox.id="globalSearchResults"; document.body.appendChild(resultBox);
+  let timer=null, cache=null;
+  async function buildCache(){
+    if(cache)return cache;
+    const [p,g,m,c]=await Promise.all([api("/api/admin/products"),api("/api/admin/gallery"),api("/api/admin/site-media"),api("/api/admin/categories")]);
+    cache={products:p.products||[],gallery:g.gallery||[],media:m.media||[],categories:c.categories||[]}; return cache;
+  }
+  function openPanel(panel){document.querySelector(`button[data-panel="${panel}"]`)?.click()}
+  async function search(q){
+    q=q.trim().toLowerCase(); if(!q){resultBox.classList.remove("show");return}
+    try{
+      const d=await buildCache(); const rows=[];
+      d.products.filter(x=>(x.name||"").toLowerCase().includes(q)||(x.description||"").toLowerCase().includes(q)).slice(0,6).forEach(x=>rows.push({type:"محصول",title:x.name,sub:"مدیریت محصولات",panel:"products"}));
+      d.gallery.filter(x=>(x.caption||"").toLowerCase().includes(q)||(x.category||"").toLowerCase().includes(q)).slice(0,5).forEach(x=>rows.push({type:"گالری",title:x.caption||"تصویر گالری",sub:x.category||"",panel:"gallery"}));
+      d.media.filter(x=>(x.title||"").toLowerCase().includes(q)||(x.slot||"").toLowerCase().includes(q)).slice(0,5).forEach(x=>rows.push({type:"رسانه",title:x.title||x.slot||"تصویر سایت",sub:"تصاویر سایت",panel:"site-media"}));
+      d.categories.filter(x=>(x.label||"").toLowerCase().includes(q)||(x.slug||"").toLowerCase().includes(q)).slice(0,4).forEach(x=>rows.push({type:"دسته‌بندی",title:x.label,sub:x.slug,panel:"products"}));
+      resultBox.innerHTML=rows.length?rows.map((r,i)=>`<button class="global-result" data-panel="${r.panel}"><span><b>${escapeHtml(r.title)}</b><small>${escapeHtml(r.sub)}</small></span><span class="result-type">${escapeHtml(r.type)}</span></button>`).join(""):"<div class='empty-state'>نتیجه‌ای پیدا نشد.</div>";
+      resultBox.classList.add("show"); resultBox.querySelectorAll("[data-panel]").forEach(b=>b.addEventListener("click",()=>{openPanel(b.dataset.panel);resultBox.classList.remove("show");input.blur()}));
+    }catch(e){toast(e.message)}
+  }
+  input.addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>search(input.value),220)});
+  document.addEventListener("click",e=>{if(!resultBox.contains(e.target)&&e.target!==input)resultBox.classList.remove("show")});
+  document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="/" ){e.preventDefault();input.focus();input.select()} if(e.key==="Escape")resultBox.classList.remove("show")});
+
+  // Restore a saved product draft when starting a new product, but never overwrite an existing product.
+  const originalOpen=window.openProductModal;
+  if(typeof originalOpen==="function"){
+    window.openProductModal=function(product=null){
+      originalOpen(product);
+      if(!product){try{const d=JSON.parse(localStorage.getItem(draftKey)||"null"); if(d && (d.name||d.description||d.images?.length)){ if(confirm("یک پیش‌نویس ذخیره‌شده از محصول پیدا شد. بازیابی شود؟")){document.getElementById("productName").value=d.name||"";document.getElementById("productCategory").value=d.category||document.getElementById("productCategory").value;document.getElementById("productDesc").value=d.description||"";document.getElementById("productSort").value=d.sort_order||0;document.getElementById("productActive").checked=d.active!==false; if(Array.isArray(d.images)){currentProductImages=d.images;renderImageList("productImagePreview",currentProductImages)} if(Array.isArray(d.features)){currentProductFeatures=d.features;renderProductFeatures()}}}}catch{}};
+    };
+  }
+})();

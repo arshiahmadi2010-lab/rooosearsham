@@ -54,16 +54,37 @@
   </aside>
 
   <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="admin-breadcrumb"><span class="live-dot"></span><span id="adminPageTitle">داشبورد</span><small id="adminLastSync">در حال آماده‌سازی...</small></div>
+      <div class="admin-top-actions">
+        <div class="global-search-wrap"><span>⌕</span><input id="globalSearch" placeholder="جستجوی سریع..." autocomplete="off"></div>
+        <button class="icon-btn" id="commandBtn" title="دستورات (Ctrl+K)">⌘</button>
+        <button class="icon-btn" id="themeToggleBtn" title="حالت نمایش">◐</button>
+        <button class="icon-btn" id="focusToggleBtn" title="حالت تمرکز">⛶</button>
+        <button class="icon-btn" id="refreshBtn" title="به‌روزرسانی">↻</button>
+        <a class="top-preview" href="../index.html" target="_blank" rel="noopener">مشاهده سایت ↗</a>
+      </div>
+    </div>
 
     <!-- PRODUCTS -->
     <section class="admin-panel active" data-panel="dashboard">
       <div class="admin-head"><div><h1>داشبورد</h1><p>نمای کلی سایت و مدیریت سریع.</p></div></div>
-      <div class="dashboard-grid">
-        <div class="stat-card"><span>محصولات</span><strong id="statProducts">—</strong><button class="btn-small" data-go="products">مدیریت</button></div>
-        <div class="stat-card"><span>تصاویر گالری</span><strong id="statGallery">—</strong><button class="btn-small" data-go="gallery">مدیریت</button></div>
-        <div class="stat-card"><span>متن‌های سایت</span><strong>ویرایش</strong><button class="btn-small" data-go="settings">مدیریت</button></div>
+      <div class="dashboard-hero">
+        <div><span class="eyebrow-admin">مرکز مدیریت رز آرشام</span><h2>همه‌چیز زیر کنترل توست.</h2><p>محتوا، تصاویر، محصولات، ظاهر و تنظیمات سایت را از یک فضای منظم مدیریت کن.</p></div>
+        <div class="dashboard-actions"><button class="btn-primary" id="quickProduct">+ محصول جدید</button><button class="btn-small secondary" id="quickGallery">+ تصویر جدید</button></div>
       </div>
-      <div class="admin-card quick-actions"><h3>دسترسی سریع</h3><div><button class="btn-primary" id="quickProduct">+ افزودن محصول</button><button class="btn-small" id="quickGallery">+ افزودن تصویر</button></div></div>
+      <div class="dashboard-grid">
+        <div class="stat-card premium"><span>محصولات</span><strong id="statProducts">—</strong><small id="statProductsMeta">در حال دریافت...</small><button class="btn-small" data-go="products">مدیریت</button></div>
+        <div class="stat-card premium"><span>تصاویر گالری</span><strong id="statGallery">—</strong><small id="statGalleryMeta">در حال دریافت...</small><button class="btn-small" data-go="gallery">مدیریت</button></div>
+        <div class="stat-card premium"><span>رسانه‌های سایت</span><strong id="statMedia">—</strong><small id="statMediaMeta">آپلودهای ذخیره‌شده</small><button class="btn-small" data-go="site-media">مدیریت</button></div>
+        <div class="stat-card premium"><span>تنظیمات</span><strong id="statSettings">—</strong><small>کلیدهای محتوایی و ظاهری</small><button class="btn-small" data-go="settings">مدیریت</button></div>
+      </div>
+      <div class="dashboard-columns">
+        <div class="admin-card health-card"><div class="card-heading"><div><h3>وضعیت سیستم</h3><p>یک نگاه سریع به سلامت بخش‌های اصلی.</p></div><span class="health-badge" id="healthBadge">بررسی...</span></div><div id="healthList" class="health-list"></div></div>
+        <div class="admin-card activity-card"><div class="card-heading"><div><h3>آخرین فعالیت‌ها</h3><p>تغییرات این مرورگر در همین نشست.</p></div><button class="btn-small secondary" id="clearActivityBtn">پاک‌سازی</button></div><div id="activityList" class="activity-list"></div></div>
+      </div>
+      <div class="admin-card smart-tools"><div class="card-heading"><div><h3>ابزارهای هوشمند</h3><p>قابلیت‌هایی برای سریع‌تر و امن‌تر کار کردن با پنل.</p></div></div><div class="smart-tool-grid"><button class="smart-tool" id="exportDashboardBtn"><b>↥</b><span>گزارش مدیریتی</span><small>خروجی JSON از وضعیت فعلی</small></button><button class="smart-tool" id="clearDraftsBtn"><b>⌫</b><span>پاک‌سازی پیش‌نویس‌ها</span><small>حذف Draftهای ذخیره‌شده محلی</small></button><button class="smart-tool" id="focusDashboardBtn"><b>⛶</b><span>حالت تمرکز</span><small>مخفی‌کردن منوی کناری</small></button><button class="smart-tool" id="darkDashboardBtn"><b>◐</b><span>حالت شب</span><small>تغییر سریع ظاهر پنل</small></button></div></div>
+      <div class="admin-card quick-actions"><div><h3>میانبرهای حرفه‌ای</h3><p>برای مدیریت سریع‌تر از میانبرها استفاده کن.</p></div><div class="shortcut-grid"><button class="shortcut" data-go="products"><b>P</b><span>محصولات</span><small>مدیریت محصولات</small></button><button class="shortcut" data-go="gallery"><b>G</b><span>گالری</span><small>تصاویر و رسانه</small></button><button class="shortcut" data-go="settings"><b>S</b><span>متن‌ها</span><small>ویرایش محتوای سایت</small></button><button class="shortcut" data-go="appearance"><b>A</b><span>ظاهر</span><small>تم و رنگ‌ها</small></button></div></div>
     </section>
 
     <!-- PRODUCTS -->
@@ -355,6 +376,13 @@
   </div>
 </div>
 
+<div class="command-backdrop" id="commandBackdrop" aria-hidden="true">
+  <div class="command-palette" role="dialog" aria-modal="true" aria-label="دستورات پنل">
+    <div class="command-search"><span>⌕</span><input id="commandInput" placeholder="جستجو بین بخش‌های پنل..." autocomplete="off"></div>
+    <div id="commandResults" class="command-results"></div>
+    <div class="command-hint"><span>Esc</span> بستن <span>↑ ↓</span> جابه‌جایی <span>Enter</span> اجرا</div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="../site-texts.js" defer></script>
