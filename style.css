@@ -1785,3 +1785,131 @@ footer .footer-bottom{padding:15px 0;font-size:11px;}
   #about .about-stats .num{font-size:14px !important;}
   #about .about-stats .lbl{font-size:7px !important;}
 }
+
+/* =========================================================
+   MOBILE FIX — homepage media + compact footer
+   Desktop styles are intentionally untouched.
+   ========================================================= */
+@media (max-width:760px){
+  /* Keep every homepage hero banner completely inside its rounded frame. */
+  #hero .hero-media{
+    width:100%;
+    min-width:0;
+    margin:0;
+  }
+  #hero .hero-slider{
+    width:100% !important;
+    max-width:100%;
+    height:clamp(250px, 70vw, 340px) !important;
+    min-height:0 !important;
+    max-height:none;
+    margin:0;
+    overflow:hidden !important;
+    position:relative !important;
+    isolation:isolate;
+  }
+  #hero .hero-slider .hero-slide{
+    width:100% !important;
+    height:100% !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+    transform:none !important;
+    background:#edf5f7;
+  }
+
+  /* About image must stay clipped to its frame; media settings cannot enlarge it. */
+  #about .about-grid{
+    width:100%;
+    max-width:100%;
+    overflow:visible;
+  }
+  #about .about-frame{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:4 / 5;
+    min-height:0 !important;
+    max-height:none;
+    overflow:hidden !important;
+    position:relative;
+    background:transparent !important;
+  }
+  #about .about-frame .managed-site-image{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    object-fit:cover !important;
+    object-position:center center !important;
+    border-radius:inherit;
+  }
+
+  /* Mobile footer: exactly three compact visual rows. */
+  footer .footer-top{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-rows:auto auto auto !important;
+    gap:0 !important;
+    padding:22px 16px 10px !important;
+    align-items:start;
+  }
+  footer .footer-brand{
+    grid-column:1 / -1;
+    grid-row:1;
+    padding-bottom:13px;
+  }
+  footer .footer-brand .logo{font-size:17px;}
+  footer .footer-brand p{
+    font-size:10px !important;
+    line-height:1.65 !important;
+    max-width:330px;
+    margin-top:3px;
+  }
+  footer .footer-col:nth-of-type(2){
+    grid-column:1;
+    grid-row:2;
+  }
+  footer .footer-col:nth-of-type(3){
+    grid-column:2;
+    grid-row:2;
+  }
+  footer .footer-col:nth-of-type(4){
+    grid-column:1 / -1;
+    grid-row:3;
+    padding-top:10px;
+  }
+  footer .footer-col h4{
+    font-size:11px !important;
+    margin-bottom:4px !important;
+  }
+  footer .footer-col li{margin-bottom:2px !important;}
+  footer .footer-col a{font-size:9.5px !important;line-height:1.55;}
+  footer .footer-bottom{
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:9px 16px !important;
+    font-size:8.5px !important;
+    line-height:1.5;
+  }
+}
+
+@media (max-width:430px){
+  #hero .hero-slider{
+    height:clamp(230px, 68vw, 290px) !important;
+    border-radius:20px 20px 52px 20px;
+  }
+  #about .about-grid{
+    grid-template-columns:108px minmax(0,1fr) !important;
+    gap:11px !important;
+  }
+  #about .about-frame{
+    border-radius:18px 18px 44px 18px;
+  }
+  footer .footer-top{padding-inline:16px !important;}
+  footer .footer-bottom{padding-inline:16px !important;}
+}
