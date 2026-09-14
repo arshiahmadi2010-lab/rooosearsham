@@ -498,5 +498,13 @@ window.SITE_TEXTS = {
   "site.product_detail.missing": {
     "label": "site / product_detail / missing",
     "default": "این محصول پیدا نشد"
-  }
+  },
+  "site.social.instagram_url": {"label": "لینک اینستاگرام", "default": "#"},
+  "site.social.telegram_url": {"label": "لینک تلگرام", "default": "#"},
+  "site.social.linkedin_url": {"label": "لینک لینکدین", "default": "#"},
+  "site.map.embed_url": {"label": "لینک Embed نقشه", "default": ""},
+  "site.map.open_url": {"label": "لینک باز کردن نقشه", "default": ""},
+  "site.map.title": {"label": "عنوان نقشه", "default": "موقعیت دفتر مرکزی"},
+  "site.contact.phone_link": {"label": "لینک تلفن", "default": ""},
+
 };

@@ -12,7 +12,15 @@ import {
 
 // ---------- small helpers ----------
 function slugify(name) {
-  return name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w\u0600-\u06FF-]/g, "");
+  return String(name || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^\w\u0600-\u06FF-]/g, "").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
+function cleanText(value, max = 10000) {
+  return String(value ?? "").trim().slice(0, max);
+}
+
+function isHttpUrl(value) {
+  try { const u = new URL(String(value)); return u.protocol === "http:" || u.protocol === "https:"; } catch { return false; }
 }
 
 function bufferToBase64(buffer) {
@@ -291,11 +299,19 @@ async function adminCreateProduct(request, env) {
   const body = await readJson(request);
   const { name, category, description, features = [], images = [], sort_order = 0 } = body || {};
   if (!name || !category) return jsonResponse({ error: "نام و دسته‌بندی محصول الزامی است." }, 400);
-  const slug = slugify(name);
+  const baseSlug = slugify(name) || `product-${Date.now()}`;
+  let slug = baseSlug;
+  for (let i = 2; i < 100; i++) {
+    const exists = await env.DB.prepare("SELECT id FROM products WHERE slug = ?").bind(slug).first();
+    if (!exists) break;
+    slug = `${baseSlug}-${i}`;
+  }
+  const safeFeatures = Array.isArray(features) ? features.map(v => cleanText(v, 300)).filter(Boolean).slice(0, 30) : [];
+  const safeImages = Array.isArray(images) ? images.map(v => cleanText(v, 2000)).filter(v => isHttpUrl(v) || v.startsWith("/api/media/")).slice(0, 20) : [];
   const result = await env.DB.prepare(
     `INSERT INTO products (name, slug, category, description, features_json, images_json, sort_order, active)
      VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
-  ).bind(name, slug, category, description || "", JSON.stringify(features), JSON.stringify(images), sort_order).run();
+  ).bind(cleanText(name, 200), slug, cleanText(category, 100), cleanText(description, 5000), JSON.stringify(safeFeatures), JSON.stringify(safeImages), Number(sort_order) || 0).run();
   return jsonResponse({ ok: true, id: result.meta.last_row_id, slug }, 201);
 }
 
@@ -303,9 +319,11 @@ async function adminUpdateProduct(request, env, id) {
   const body = await readJson(request);
   const { name, category, description, features = [], images = [], sort_order = 0, active = 1 } = body || {};
   if (!name || !category) return jsonResponse({ error: "نام و دسته‌بندی محصول الزامی است." }, 400);
+  const safeFeatures = Array.isArray(features) ? features.map(v => cleanText(v, 300)).filter(Boolean).slice(0, 30) : [];
+  const safeImages = Array.isArray(images) ? images.map(v => cleanText(v, 2000)).filter(v => isHttpUrl(v) || v.startsWith("/api/media/")).slice(0, 20) : [];
   await env.DB.prepare(
     `UPDATE products SET name=?, category=?, description=?, features_json=?, images_json=?, sort_order=?, active=? WHERE id=?`
-  ).bind(name, category, description || "", JSON.stringify(features), JSON.stringify(images), sort_order, active ? 1 : 0, id).run();
+  ).bind(cleanText(name, 200), cleanText(category, 100), cleanText(description, 5000), JSON.stringify(safeFeatures), JSON.stringify(safeImages), Number(sort_order) || 0, active ? 1 : 0, id).run();
   return jsonResponse({ ok: true });
 }
 
@@ -326,9 +344,12 @@ async function adminAddGalleryImage(request, env) {
 
 async function adminUpdateGalleryImage(request, env, id) {
   const body = await readJson(request);
-  const { category = "", caption = "", sort_order = 0 } = body || {};
-  await env.DB.prepare("UPDATE gallery_images SET category=?, caption=?, sort_order=? WHERE id=?")
-    .bind(category, caption, Number(sort_order) || 0, id).run();
+  const { image_url, category = "", caption = "", sort_order = 0 } = body || {};
+  if (image_url !== undefined && image_url && !(isHttpUrl(image_url) || String(image_url).startsWith("/api/media/"))) return jsonResponse({ error: "آدرس تصویر معتبر نیست." }, 400);
+  const row = await env.DB.prepare("SELECT image_url FROM gallery_images WHERE id=?").bind(id).first();
+  if (!row) return jsonResponse({ error: "تصویر گالری پیدا نشد." }, 404);
+  await env.DB.prepare("UPDATE gallery_images SET image_url=?, category=?, caption=?, sort_order=? WHERE id=?")
+    .bind(image_url || row.image_url, cleanText(category, 100), cleanText(caption, 500), Number(sort_order) || 0, id).run();
   return jsonResponse({ ok: true });
 }
 
@@ -378,7 +399,7 @@ async function adminGetSettings(env) {
 
 async function adminUpdateSettings(request, env) {
   const body = await readJson(request);
-  const entries = Object.entries(body || {});
+  const entries = Object.entries(body || {}).filter(([key]) => key && key !== "__proto__" && key !== "constructor" && key !== "prototype");
   if (entries.length === 0) return jsonResponse({ error: "هیچ مقداری ارسال نشده است." }, 400);
   const stmt = env.DB.prepare(
     "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"

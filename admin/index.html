@@ -120,7 +120,7 @@
       <div class="admin-head">
         <div>
           <h1>متن‌های سایت</h1>
-          <p>ویرایش متن‌های صفحه اصلی و اطلاعات تماس.</p>
+          <p>تمام متن‌های قابل ویرایش سایت، اطلاعات تماس و تنظیمات محتوایی را از همین‌جا مدیریت کن.</p>
         </div>
       </div>
       <div class="admin-card">
@@ -226,6 +226,20 @@
       </div>
 
       <div class="admin-card">
+        <h3 style="margin-bottom:8px;">نقشه و لینک‌های تماس</h3>
+        <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">لینک Embed نقشه، لینک باز کردن نقشه و شبکه‌های اجتماعی را بدون دست‌کاری کد مدیریت کن.</p>
+        <div class="settings-fields">
+          <div class="form-field"><label for="mapEmbedUrl">لینک Embed نقشه</label><input id="mapEmbedUrl" type="url" placeholder="https://..." dir="ltr"></div>
+          <div class="form-field"><label for="mapOpenUrl">لینک باز کردن نقشه</label><input id="mapOpenUrl" type="url" placeholder="https://..." dir="ltr"></div>
+          <div class="form-field"><label for="mapTitle">عنوان نقشه</label><input id="mapTitle" type="text"></div>
+          <div class="form-field"><label for="instagramUrl">اینستاگرام</label><input id="instagramUrl" type="url" dir="ltr" placeholder="https://instagram.com/..." ></div>
+          <div class="form-field"><label for="telegramUrl">تلگرام</label><input id="telegramUrl" type="url" dir="ltr" placeholder="https://t.me/..." ></div>
+          <div class="form-field"><label for="linkedinUrl">لینکدین</label><input id="linkedinUrl" type="url" dir="ltr" placeholder="https://linkedin.com/..." ></div>
+        </div>
+        <button type="button" class="btn-primary" id="saveContactLinksBtn" style="border:none; cursor:pointer;">ذخیره اطلاعات تماس و لینک‌ها</button>
+      </div>
+
+      <div class="admin-card">
         <h3 style="margin-bottom:8px;">CSS اختصاصی</h3>
         <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">دستت کاملاً بازه — هر CSS دلخواهی رو اینجا بنویس تا مستقیم روی سایت اعمال بشه. اگه با CSS آشنا نیستی، از این بخش صرف‌نظر کن.</p>
         <textarea id="customCssEditor" spellcheck="false" style="width:100%; min-height:220px; font-family:monospace; font-size:13px; direction:ltr; text-align:left; border:1.3px solid var(--line); border-radius:10px; padding:14px; background:var(--paper); color:var(--ink);" placeholder=".hero h1{ font-size: 60px; }"></textarea>
@@ -261,12 +275,17 @@
         <select id="productCategory" style="width:100%; border:1.3px solid var(--line); border-radius:10px; padding:13px 16px; font-family:var(--font-body); background:var(--paper);"></select>
       </div>
       <div class="form-field">
-        <label for="productDesc">توضیح کوتاه</label>
+        <label for="productDesc">توضیحات محصول</label>
         <textarea id="productDesc" maxlength="5000"></textarea>
+      </div>
+      <div class="form-field">
+        <label>ویژگی‌های محصول</label>
+        <div id="productFeaturesList" class="repeatable-list"></div>
+        <button type="button" class="btn-small secondary" id="addProductFeatureBtn">+ افزودن ویژگی</button>
       </div>
       <div class="form-field"><label for="productSort">ترتیب نمایش</label><input id="productSort" type="number" min="0" step="1" value="0"></div>
       <div class="form-field">
-        <label>تصویر محصول</label>
+        <label>تصاویر محصول</label>
         <div class="upload-drop" id="productUploadDrop">برای افزودن تصویر کلیک کنید (امکان انتخاب چند تصویر)</div>
         <input type="file" id="productImageInput" accept="image/*" multiple style="display:none;">
         <div class="upload-preview multi" id="productImagePreview"></div>
@@ -285,8 +304,8 @@
 <!-- ---------------- GALLERY MODAL ---------------- -->
 <div class="modal-backdrop" id="galleryModal">
   <div class="modal">
-    <h2>افزودن تصویر گالری</h2>
-    <form id="galleryForm">
+    <h2 id="galleryModalTitle">افزودن تصویر گالری</h2>
+    <form id="galleryForm"><input type="hidden" id="galleryId">
       <div class="form-field">
         <label>تصویر</label>
         <div class="upload-drop" id="galleryUploadDrop">برای آپلود تصویر کلیک کنید</div>
@@ -304,7 +323,11 @@
       </div>
       <div class="form-field">
         <label for="galleryCaption">توضیح (اختیاری)</label>
-        <input id="galleryCaption" type="text">
+        <input id="galleryCaption" type="text" maxlength="500">
+      </div>
+      <div class="form-field">
+        <label for="gallerySort">ترتیب نمایش</label>
+        <input id="gallerySort" type="number" min="0" step="1" value="0">
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-small secondary" id="galleryCancelBtn">انصراف</button>

@@ -2061,3 +2061,15 @@ footer .footer-bottom{padding:15px 0;font-size:11px;}
     font-size:7.5px !important;
   }
 }
+
+/* ================= ADMIN UPGRADE ================= */
+.admin-body .repeatable-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}.admin-body .repeatable-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.admin-body .repeatable-row input{width:100%;border:1.3px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--paper);font-family:var(--font-body);color:var(--ink)}
+.admin-body .admin-table td,.admin-body .admin-table th{vertical-align:middle}.admin-body .site-media-preview img{object-fit:cover;max-height:230px}.admin-body .modal{max-height:92vh;overflow:auto}.admin-body .form-field input[type=url][dir=ltr]{font-family:monospace;font-size:12px}
+@media(max-width:700px){.admin-body .admin-shell{display:block}.admin-body .admin-sidebar{position:sticky;top:0;z-index:20;width:100%;max-height:none}.admin-body .admin-nav{display:flex;overflow-x:auto;gap:6px;padding:8px}.admin-body .admin-nav-label{display:none}.admin-body .admin-nav button{white-space:nowrap}.admin-body .admin-main{padding:14px}.admin-body .admin-head h1{font-size:24px}.admin-body .admin-table{min-width:720px}.admin-body .admin-card{overflow-x:auto}.admin-body .modal{width:calc(100vw - 24px);padding:18px}.admin-body .dashboard-grid{grid-template-columns:1fr 1fr}.admin-body .settings-fields{grid-template-columns:1fr}.admin-body .site-media-grid{grid-template-columns:1fr}}
+
+/* Editable contact map */
+.map-placeholder.has-map{padding:0!important;overflow:hidden;display:block;position:relative;min-height:360px}
+.map-placeholder.has-map iframe{display:block;width:100%;height:100%;min-height:360px;border:0}
+.map-empty{min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:30px;color:var(--muted)}
+.map-empty strong{color:var(--ink);font-size:18px}.map-empty a{margin-top:8px;color:var(--sage-deep);font-weight:700;text-decoration:none}
+@media(max-width:760px){.map-placeholder.has-map,.map-placeholder.has-map iframe,.map-empty{min-height:280px;height:280px}.map-empty{padding:20px}.admin-body .repeatable-row{grid-template-columns:minmax(0,1fr) auto}}

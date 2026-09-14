@@ -194,6 +194,10 @@ const settingsReady = (async function loadSettings() {
     const key = el.dataset.setting;
     if (s[key] !== undefined && s[key] !== null) el.textContent = s[key];
   });
+  document.querySelectorAll("[data-setting-href]").forEach((el) => {
+    const key = el.dataset.settingHref;
+    if (s[key] !== undefined && s[key] !== null && String(s[key]).trim()) el.href = String(s[key]).trim();
+  });
 
   setText("contactPhone", s.contact_phone);
   setText("contactEmail", s.contact_email);
@@ -206,6 +210,20 @@ const settingsReady = (async function loadSettings() {
   }
   if (s.contact_email) {
     document.querySelectorAll('a[href^="mailto:"]').forEach((a) => { a.href = "mailto:" + s.contact_email; });
+  }
+
+  // Contact map is fully controlled from the admin panel. Only http(s) embeds are accepted.
+  const map = document.getElementById("contactMap");
+  if (map) {
+    const embed = String(s["site.map.embed_url"] || "").trim();
+    const openUrl = String(s["site.map.open_url"] || "").trim();
+    if (/^https?:\/\//i.test(embed)) {
+      map.innerHTML = `<iframe src="${escapeHTML(embed)}" title="${escapeHTML(s["site.map.title"] || "موقعیت دفتر مرکزی")}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`;
+      map.classList.add("has-map");
+    } else {
+      map.innerHTML = `<div class="map-empty"><strong>${escapeHTML(s["site.map.title"] || "موقعیت دفتر مرکزی")}</strong><span>لینک نقشه از پنل مدیریت ثبت نشده است.</span>${/^https?:\/\//i.test(openUrl) ? `<a href="${escapeHTML(openUrl)}" target="_blank" rel="noopener">باز کردن نقشه ↗</a>` : ""}</div>`;
+      map.classList.remove("has-map");
+    }
   }
   return s;
 })();

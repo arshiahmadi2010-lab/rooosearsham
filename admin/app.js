@@ -105,6 +105,7 @@ document.getElementById("adminNav").addEventListener("click", (e) => {
 const productModal = document.getElementById("productModal");
 const productForm = document.getElementById("productForm");
 let currentProductImages = [];
+let currentProductFeatures = [];
 
 function openProductModal(product = null) {
   document.getElementById("productModalTitle").textContent = product ? "ویرایش محصول" : "محصول جدید";
@@ -114,8 +115,10 @@ function openProductModal(product = null) {
   document.getElementById("productDesc").value = product ? product.description : "";
   document.getElementById("productActive").checked = product ? !!product.active : true;
   currentProductImages = product && product.images ? [...product.images] : [];
+  currentProductFeatures = product && product.features ? [...product.features] : [];
   document.getElementById("productSort").value = product ? (product.sort_order || 0) : 0;
   renderImageList("productImagePreview", currentProductImages);
+  renderProductFeatures();
   productModal.classList.add("show");
 }
 function closeProductModal() { productModal.classList.remove("show"); }
@@ -148,7 +151,7 @@ productForm.addEventListener("submit", async (e) => {
     description: document.getElementById("productDesc").value,
     images: currentProductImages,
     sort_order: Number(document.getElementById("productSort").value || 0),
-    features: [],
+    features: currentProductFeatures.filter(v => v.trim()),
     active: document.getElementById("productActive").checked ? 1 : 0,
   };
   try {
@@ -213,44 +216,51 @@ function renderImageList(containerId, urls) {
   el.innerHTML = urls.map((url, i) => `<div class="image-chip"><img src="${escapeAttr(url)}" alt=""><button type="button" data-img-index="${i}" title="حذف">×</button></div>`).join("");
   el.querySelectorAll("[data-img-index]").forEach(btn => btn.addEventListener("click", () => { currentProductImages.splice(Number(btn.dataset.imgIndex),1); renderImageList(containerId,currentProductImages); }));
 }
+function renderProductFeatures() {
+  const box = document.getElementById("productFeaturesList");
+  if (!box) return;
+  box.innerHTML = currentProductFeatures.map((value, i) => `<div class="repeatable-row"><input type="text" value="${escapeAttr(value)}" data-feature-index="${i}" placeholder="مثلاً: لطافت بالا"><button type="button" class="btn-small secondary" data-feature-del="${i}">×</button></div>`).join("");
+  box.querySelectorAll("[data-feature-index]").forEach(input => input.addEventListener("input", () => { currentProductFeatures[Number(input.dataset.featureIndex)] = input.value; }));
+  box.querySelectorAll("[data-feature-del]").forEach(btn => btn.addEventListener("click", () => { currentProductFeatures.splice(Number(btn.dataset.featureDel),1); renderProductFeatures(); }));
+}
+document.getElementById("addProductFeatureBtn")?.addEventListener("click", () => { currentProductFeatures.push(""); renderProductFeatures(); setTimeout(() => document.querySelector("#productFeaturesList input:last-child")?.focus(), 0); });
+
 document.getElementById("productSearch")?.addEventListener("input", loadProducts);
 
 // ==================== GALLERY ====================
 const galleryModal = document.getElementById("galleryModal");
 let currentGalleryImage = "";
 
-document.getElementById("newGalleryBtn").addEventListener("click", () => {
-  currentGalleryImage = "";
-  renderPreview("galleryImagePreview", "");
-  document.getElementById("galleryForm").reset();
+function openGalleryModal(image = null) {
+  currentGalleryImage = image?.image_url || "";
+  document.getElementById("galleryId").value = image?.id || "";
+  document.getElementById("galleryCategory").value = image?.category || "";
+  document.getElementById("galleryCaption").value = image?.caption || "";
+  document.getElementById("gallerySort").value = image?.sort_order || 0;
+  document.getElementById("galleryModalTitle").textContent = image ? "ویرایش تصویر گالری" : "افزودن تصویر گالری";
+  renderPreview("galleryImagePreview", currentGalleryImage);
   galleryModal.classList.add("show");
-});
+}
+
+document.getElementById("newGalleryBtn").addEventListener("click", () => openGalleryModal());
 document.getElementById("galleryCancelBtn").addEventListener("click", () => galleryModal.classList.remove("show"));
 
 document.getElementById("galleryUploadDrop").addEventListener("click", () => document.getElementById("galleryImageInput").click());
 document.getElementById("galleryImageInput").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    toast("در حال آپلود تصویر...");
-    currentGalleryImage = await uploadFile(file);
-    renderPreview("galleryImagePreview", currentGalleryImage);
-  } catch (err) { toast(err.message); }
+  const files = [...e.target.files];
+  if (!files.length) return;
+  try { toast("در حال آپلود تصویر..."); currentGalleryImage = await uploadFile(files[0]); renderPreview("galleryImagePreview", currentGalleryImage); }
+  catch (err) { toast(err.message); }
 });
 
 document.getElementById("galleryForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!currentGalleryImage) { toast("ابتدا یک تصویر آپلود کنید."); return; }
-  const payload = {
-    image_url: currentGalleryImage,
-    category: document.getElementById("galleryCategory").value,
-    caption: document.getElementById("galleryCaption").value,
-  };
+  const id = document.getElementById("galleryId").value;
+  const payload = { image_url: currentGalleryImage, category: document.getElementById("galleryCategory").value, caption: document.getElementById("galleryCaption").value, sort_order: Number(document.getElementById("gallerySort").value || 0) };
   try {
-    await api("/api/admin/gallery", { method: "POST", body: JSON.stringify(payload) });
-    galleryModal.classList.remove("show");
-    toast("تصویر اضافه شد.");
-    loadGallery();
+    await api(id ? `/api/admin/gallery/${id}` : "/api/admin/gallery", { method: id ? "PUT" : "POST", body: JSON.stringify(payload) });
+    galleryModal.classList.remove("show"); toast(id ? "تصویر گالری ویرایش شد." : "تصویر اضافه شد."); loadGallery();
   } catch (err) { toast(err.message); }
 });
 
@@ -261,19 +271,17 @@ async function loadGallery() {
     const body = document.getElementById("galleryTableBody");
     body.innerHTML = images.map((g) => `
       <tr>
-        <td><img class="admin-thumb" src="${g.image_url}"></td>
-        <td>${g.category || "—"}</td>
-        <td>${g.caption || "—"}</td>
-        <td><div class="row-actions"><button data-del="${g.id}">حذف</button></div></td>
-      </tr>`).join("") || `<tr><td colspan="4" style="color:var(--muted); text-align:center; padding:24px;">هنوز تصویری اضافه نشده است.</td></tr>`;
-
-    body.querySelectorAll("[data-del]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        if (!confirm("این تصویر حذف شود؟")) return;
-        await api(`/api/admin/gallery/${btn.dataset.del}`, { method: "DELETE" });
-        toast("تصویر حذف شد.");
-        loadGallery();
-      }));
+        <td><img class="admin-thumb" src="${escapeAttr(g.image_url)}" loading="lazy"></td>
+        <td>${escapeHtml(g.category || "—")}</td>
+        <td>${escapeHtml(g.caption || "—")}</td>
+        <td>${Number(g.sort_order || 0)}</td>
+        <td><div class="row-actions"><button class="edit" data-gallery-edit="${g.id}">ویرایش</button><button data-del="${g.id}">حذف</button></div></td>
+      </tr>`).join("") || `<tr><td colspan="5" style="color:var(--muted); text-align:center; padding:24px;">هنوز تصویری اضافه نشده است.</td></tr>`;
+    body.querySelectorAll("[data-gallery-edit]").forEach(btn => btn.addEventListener("click", () => openGalleryModal(images.find(g => g.id == btn.dataset.galleryEdit))));
+    body.querySelectorAll("[data-del]").forEach(btn => btn.addEventListener("click", async () => {
+      if (!confirm("این تصویر حذف شود؟")) return;
+      try { await api(`/api/admin/gallery/${btn.dataset.del}`, { method: "DELETE" }); toast("تصویر حذف شد."); loadGallery(); } catch (err) { toast(err.message); }
+    }));
   } catch (err) { toast(err.message); }
 }
 
@@ -390,6 +398,7 @@ function escapeAttr(v) { return escapeHtml(v).replace(/"/g,"&quot;"); }
 async function loadSettings() {
   try {
     const { settings } = await api("/api/settings");
+    themeSettingsCache = { ...themeSettingsCache, ...(settings || {}) };
     renderSettingsFields(settings || {});
   } catch (err) { toast(err.message); }
 }
@@ -551,6 +560,19 @@ document.getElementById("faviconInput").addEventListener("change", async (e) => 
   } catch (err) { toast(err.message); }
 });
 
+document.getElementById("saveContactLinksBtn")?.addEventListener("click", async () => {
+  const payload = {
+    "site.map.embed_url": document.getElementById("mapEmbedUrl").value.trim(),
+    "site.map.open_url": document.getElementById("mapOpenUrl").value.trim(),
+    "site.map.title": document.getElementById("mapTitle").value.trim(),
+    "site.social.instagram_url": document.getElementById("instagramUrl").value.trim(),
+    "site.social.telegram_url": document.getElementById("telegramUrl").value.trim(),
+    "site.social.linkedin_url": document.getElementById("linkedinUrl").value.trim()
+  };
+  try { await api("/api/admin/settings", { method: "PUT", body: JSON.stringify(payload) }); Object.assign(themeSettingsCache, payload); toast("اطلاعات تماس و لینک‌ها ذخیره شد."); }
+  catch (err) { toast(err.message); }
+});
+
 document.getElementById("saveCustomCssBtn").addEventListener("click", async () => {
   const payload = { "theme.custom_css": document.getElementById("customCssEditor").value };
   try {
@@ -592,6 +614,12 @@ function loadAdvanced() {
   loadSectionOrder();
   document.getElementById("seoDescription").value = themeSettingsCache["seo.meta_description"] || "";
   document.getElementById("customCssEditor").value = themeSettingsCache["theme.custom_css"] || "";
+  document.getElementById("mapEmbedUrl").value = themeSettingsCache["site.map.embed_url"] || "";
+  document.getElementById("mapOpenUrl").value = themeSettingsCache["site.map.open_url"] || "";
+  document.getElementById("mapTitle").value = themeSettingsCache["site.map.title"] || "موقعیت دفتر مرکزی";
+  document.getElementById("instagramUrl").value = themeSettingsCache["site.social.instagram_url"] || "";
+  document.getElementById("telegramUrl").value = themeSettingsCache["site.social.telegram_url"] || "";
+  document.getElementById("linkedinUrl").value = themeSettingsCache["site.social.linkedin_url"] || "";
   if (themeSettingsCache["seo.favicon_url"]) {
     document.getElementById("faviconPreview").innerHTML = `<img src="${themeSettingsCache["seo.favicon_url"]}" alt="">`;
   }
